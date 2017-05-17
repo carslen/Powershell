@@ -1,21 +1,17 @@
 ﻿ [CmdletBinding()]
 Param(
-  [Parameter(Mandatory=$True,Position=1)]
-   [string]$computerName,
-	
-   [Parameter(Mandatory=$True,Position=2)]
-   [string]$vhdPath
-   )
-
+    [Parameter(Mandatory=$True,Position=1)][string]$ComputerName,
+    [Parameter(Mandatory=$True,Position=2)][string]$vhdPath,
+    [Parameter(Mandatory=$False)] [ValidateNotNull()] [System.Management.Automation.PSCredential] [System.Management.Automation.Credential()] $Credential = [System.Management.Automation.PSCredential]::Empty
+    )
 
 #$vhdPath = "D:\vhds"
 #$computerName = "hyperv-test"
 
 
-$credetial = Get-Credential horaios\cleadm
-$vmVHds = get-vm -ComputerName $computerName | foreach{($_.Harddrives).Path}
-$fsVHDs = Invoke-Command -ComputerName $computerName -Credential $credetial -ScriptBlock {Get-ChildItem -Path $args[0] -File -Recurse | where {$_.Extension -eq ".vhd" -or $_.Extension -eq ".vhdx"}|foreach{(get-vhd $_.Fullname).Path}} -ArgumentList $vhdPath
-
+#$credetial = Get-Credential horaios\cleadm
+$vmVHds = get-vm -ComputerName $computerName | ForEach-Object{($_.Harddrives).Path}
+$fsVHDs = Invoke-Command -ComputerName $computerName -Credential $Credential -ScriptBlock {Get-ChildItem -Path $args[0] -File -Recurse | Where-Object {$_.Extension -eq ".vhd" -or $_.Extension -eq ".vhdx"}|ForEach-Object{(get-vhd $_.Fullname).Path}} -ArgumentList $vhdPath
 
 foreach($item in $fsVHds){
     if  ($vmVHDs -contains $item)
