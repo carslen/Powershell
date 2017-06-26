@@ -33,7 +33,7 @@ function Write-iBISSTM1Log (
     {
         Begin{
             $logDate = Get-Date -UFormat "%D %T"
-            $Value   = $logDate + " " + $Message
+            $Value   = $logDate + " " + "INFO" + " " + $Message
         }
 
         Process{
