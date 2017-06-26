@@ -4,7 +4,7 @@ Param (
 )
 
 
-. "C:\Users\CARSLEN\Documents\git\Powershell\iBISS TM1\iBIS-TM1-Logging_Functions.ps1"
+. "C:\Users\CARSLEN\Documents\git\Powershell\iBISS TM1\iBISS-TM1-Logging_Functions.ps1"
 $date = Get-Date -UFormat "%Y-%m-%d"
 
 if (!(Get-Service -Name wuauserv -ErrorAction SilentlyContinue)) { # wuauserv durch $InstanceName ersetzen auf TM1 Maschinen!
