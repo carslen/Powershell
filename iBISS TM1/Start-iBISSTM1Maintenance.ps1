@@ -6,11 +6,8 @@ Param (
     [Parameter(Mandatory=$true,Position=2)][ValidateNotNull()] [string[]]$InstanceName #= "testInstance"
 )
 
-<#function LogWarning ([string]$warnValue) {
-    $logDate = Get-Date -UFormat "%D %T"
-    Add-Content -Path $logPath/$logName -Value "$logDate $warnValue"
-}#>
 
+. "C:\Users\CARSLEN\Documents\git\Powershell\iBISS TM1\Logging-Functions.ps1"
 $date = Get-Date -UFormat "%Y-%m-%d"
 
 if (!(Get-Service -Name wuauserv -ErrorAction SilentlyContinue)) { # wuauserv durch $InstanceName ersetzen auf TM1 Maschinen!
@@ -18,10 +15,6 @@ if (!(Get-Service -Name wuauserv -ErrorAction SilentlyContinue)) { # wuauserv du
 }
 else {
     if ($Task -eq "CopyLogs") {
-
-        #Settings for deleting Backups
-        #$InstanceName = "TestInstance"       # test, wieder löschen!
-        #$date = Get-Date -UFormat "%Y-%m-%d" # test, wieder löschen!
         $logPath = "C:\Users\CARSLEN\Desktop\Test\$InstanceName\logs\logfiles"
         $logName = "$InstanceName-CopyLogs-$date.log"
         $log     = "$logPath\$logName"
@@ -30,8 +23,7 @@ else {
             New-Item -Path $logPath -ItemType "Directory" | Out-Null
             New-Item -Name $logName -Path $logPath -ItemType "file" | Out-Null
             Write-Host -ForegroundColor Green "Done!"
-            $logDate = Get-Date -UFormat "%D %T"
-            Add-Content -Path $log -Value "$logDate"":" "Initial creation of logdir completet!" 
+            Write-iBISSLog -Path $log -Message "Created logdirs for Task: $Task"
         }
         else {
             New-Item -Name $logName -Path $logPath -ItemType "file"        
