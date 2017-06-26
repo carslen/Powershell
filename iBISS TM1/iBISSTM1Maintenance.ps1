@@ -1,13 +1,10 @@
 Param (
-    # Parameter help description
-    #[Parameter(Mandatory=$true)][string[]]$ComputerName,
-    #[Parameter(Mandatory=$true)][ValidateSet("proc","service")]$print
     [Parameter(Mandatory=$true,Position=1)][ValidateSet("CopyLogs", "PurgeBackup", "PurgeLogs", "OfflineBackup", "OnlineBackup")] [string[]]$Task,
     [Parameter(Mandatory=$true,Position=2)][ValidateNotNull()] [string[]]$InstanceName #= "testInstance"
 )
 
 
-. "C:\Users\CARSLEN\Documents\git\Powershell\iBISS TM1\Logging-Functions.ps1"
+. "C:\Users\CARSLEN\Documents\git\Powershell\iBISS TM1\iBIS-TM1-Logging_Functions.ps1"
 $date = Get-Date -UFormat "%Y-%m-%d"
 
 if (!(Get-Service -Name wuauserv -ErrorAction SilentlyContinue)) { # wuauserv durch $InstanceName ersetzen auf TM1 Maschinen!
@@ -23,7 +20,8 @@ else {
             New-Item -Path $logPath -ItemType "Directory" | Out-Null
             New-Item -Name $logName -Path $logPath -ItemType "file" | Out-Null
             Write-Host -ForegroundColor Green "Done!"
-            Write-iBISSLog -Path $log -Message "Created logdirs for Task: $Task"
+            #Write-iBISSLog -Path $log -Message "Created logdirs for Task: $Task"
+            Start-iBISSTM1Log -Path $log -Task $Task
         }
         else {
             New-Item -Name $logName -Path $logPath -ItemType "file"        
