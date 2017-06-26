@@ -3,6 +3,7 @@ function Write-iBISSLog {
     <#
     .SYNOPSIS
     Short description
+    Inspired by http://9to5it.com/powershell-logging-function-library/ 
     
     .DESCRIPTION
     Long description
