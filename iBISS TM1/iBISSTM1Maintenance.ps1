@@ -22,6 +22,7 @@ else {
             Write-Host -ForegroundColor Green "Done!"
             #Write-iBISSLog -Path $log -Message "Created logdirs for Task: $Task"
             Start-iBISSTM1Log -Path $log -Task $Task
+            Write-iBISSTM1Log -Path $log -Message "Created logdirs for Task $Task"
         }
         else {
             New-Item -Name $logName -Path $logPath -ItemType "file"        
