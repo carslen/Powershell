@@ -4,7 +4,7 @@ Param (
 )
 
 
-. "C:\Users\CARSLEN\Documents\git\Powershell\iBISS TM1\iBISS-TM1-Logging_Functions.ps1"
+. "C:\Users\CARSLEN\Documents\git\Powershell\iBISS TM1\iBISS-TM1-Functions.ps1"
 $date1   = Get-Date -UFormat "%Y-%m-%d"
 $date2   = Get-Date -Uformat "%Y-%m-%d_%H%M%S"
 $BaseDir = "C:\Users\CARSLEN\Desktop\Test"
@@ -107,7 +107,7 @@ else {
         }
 
         Start-iBISSTM1Backup -Type Offline -Target $BackupTarget -Source $BackupSource
-        
+
     }
     elseif ($Task -eq "OnlineBackup") {
         # Setting up Log environment
