@@ -90,23 +90,39 @@ function Write-iBISSTM1ERROR (
 function Start-iBISSTM1Backup (
     [Parameter(Mandatory = $true)][ValidateSet("Online", "Offline")][string[]]$Type,
     [Parameter(Mandatory = $true)][string[]]$Target,
-    [Parameter(Mandatory = $true)][string[]]$Source,
-    [Parameter(Mandatory = $true)][string[]]$Log
+    [Parameter(Mandatory = $true)][string[]]$Source
+    #[Parameter(Mandatory = $true)][string[]]$Log
     )
     
     {
     Begin{
-        if (Test-Path -Path $env:ProgramFiles\7-zip\7z.exe) {
+        if (Test-Path -Path $env:ProgramFiles\7-zip\7z2.exe) {
             Set-Alias 7z "$env:ProgramFiles\7-zip\7z.exe"
         }
         else {
             Write-iBISSTM1ERROR -Path $log -Message "7-Zip executable missing, or no 64 version installed!"
+            Break
         }
     }
     
     Process{
         if ($Type -eq "Online") {
-            7z a -x!*.cub$ -x!*.sub$ -x!*.vue$ -r $Target $Source >> $log       # Online verwendete andere 7z Opts
+            Write-iBISSTM1Log -Path $log -Message "Starting TM1 $Task"
+            7z a -tzip '-xr!*.cub' '-xr!*.sub' '-xr!*.vue' $Target $Source -bso1 > $env:TEMP\7ztemp.log
+            Add-Content -Path $log -Value (Get-Content $env:TEMP\7ztemp.log)
+            Remove-Item -Path "$env:TEMP\7ztemp.log"
+            if ($LASTEXITCODE -eq "0") {
+                Add-Content -Path $log -Value ""
+                Write-iBISSTM1Log -Path $log -Message "Backup completed successful."
+            }
+            elseif ($LASTEXITCODE -eq "1") {
+                Add-Content -Path $log -Value ""
+                Write-iBISSTM1Warn -Path $log -Message "Backup completed with warnings."
+            }
+            elseif ($LASTEXITCODE -eq "2") {
+                Add-Content -Path $log -Value ""
+                Write-iBISSTM1ERROR -Path $log -Message "Backup failed!"
+            }
         }
         elseif ($Type -eq "Offline") {
             7z a -r $Target $Source >> $log                                     # Offline verwendet andere 7z Opts
