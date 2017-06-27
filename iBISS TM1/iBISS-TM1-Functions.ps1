@@ -34,7 +34,7 @@ function Write-iBISSTM1Log (
     
     {
         Begin{
-            $logDate = Get-Date -UFormat "%D %T"
+            $logDate = Get-Date -UFormat "%d.%m.%Y %T"
             $Value   = $logDate + " " + "INFO" + " " + $Message
         }
 
@@ -54,7 +54,7 @@ function Write-iBISSTM1Warn (
     
     {
         Begin{
-            $logDate = Get-Date -UFormat "%D %T"
+            $logDate = Get-Date -UFormat "%d.%m.%Y %T"
             $Value   = $logDate + " " + "WARN" + " " + $Message
         }
 
@@ -74,7 +74,7 @@ function Write-iBISSTM1ERROR (
     
     {
         Begin{
-            $logDate = Get-Date -UFormat "%D %T"
+            $logDate = Get-Date -UFormat "%d.%m.%Y %T"
             $Value   = $logDate + " " + "ERROR" + " " + $Message
         }
 
@@ -96,7 +96,7 @@ function Start-iBISSTM1Backup (
     
     {
     Begin{
-        if (Test-Path -Path $env:ProgramFiles\7-zip\7z2.exe) {
+        if (Test-Path -Path $env:ProgramFiles\7-zip\7z.exe) {
             Set-Alias 7z "$env:ProgramFiles\7-zip\7z.exe"
         }
         else {
