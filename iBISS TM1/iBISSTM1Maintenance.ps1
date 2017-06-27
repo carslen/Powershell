@@ -5,7 +5,9 @@ Param (
 
 
 . "C:\Users\CARSLEN\Documents\git\Powershell\iBISS TM1\iBISS-TM1-Logging_Functions.ps1"
-$date = Get-Date -UFormat "%Y-%m-%d"
+$date1 = Get-Date -UFormat "%Y-%m-%d"
+$date2 = Get-Date -Uformat "%Y-%m-%d_%H%M%S"
+
 
 if (!(Get-Service -Name wuauserv -ErrorAction SilentlyContinue)) { # wuauserv durch $InstanceName ersetzen auf TM1 Maschinen!
     Write-Warning -Message "Service ""$InstanceName"" doesn't exists!"
@@ -16,7 +18,7 @@ else {
         # Setting up Log environment
         #
         $logPath = "C:\Users\CARSLEN\Desktop\Test\$InstanceName\logs\logfiles"
-        $logName = "$InstanceName-CopyLogs-$date.log"
+        $logName = "$InstanceName-CopyLogs-$date2.log"
         $log     = "$logPath\$logName"
         
         # Check if we run first time and create Log structure, else create new logfile only
@@ -30,76 +32,87 @@ else {
             Write-iBISSTM1Log -Path $log -Message "Created logdirs for Task $Task"
         }
         else {
-            New-Item -Name $logName -Path $logPath -ItemType "file"        
+            New-Item -Name $logName -Path $logPath -ItemType "file"
+            Start-iBISSTM1Log -Path $log -Task $Task
         }
     }
-    elseif ($Task -eq "PurgeBackup") {
+    <#elseif ($Task -eq "PurgeBackup") {
         # Setting up Log environment
         #
         $logPath = "C:\Users\CARSLEN\Desktop\Test\$InstanceName\logs\backups"
-        $logName = "$InstanceName-PurgeBackup-$date.log"
+        $logName = "$InstanceName-PurgeBackup-$date1.log"
         $log     = "$logPath\$logName"
 
         # Check if we run first time and create Log structure, else create new logfile only
         #
         if (!(Test-Path $logPath)) {
-            New-Item -Path $logPath -ItemType "Directory"
-            New-Item -Name $logName -Path $logPath -ItemType "file"
+            New-Item -Path $logPath -ItemType "Directory" | Out-Null
+            New-Item -Name $logName -Path $logPath -ItemType "file" | Out-Null
+            Start-iBISSTM1Log -Path $log -Task $Task
         }
         else {
-            New-Item -Name $logName -Path $logPath -ItemType "file"        
+            New-Item -Name $logName -Path $logPath -ItemType "file"
+            Start-iBISSTM1Log -Path $log -Task $Task
         }
-    }
+    }#>
     elseif ($Task -eq "PurgeLogs") {
         # Setting up Log environment
         #
         $logPath = "C:\Users\CARSLEN\Desktop\Test\$InstanceName\logs\logfiles"
-        $logName = "$InstanceName-PurgeLogs-$date.log"
+        $logName = "$InstanceName-PurgeLogs-$date1.log"
         $log     = "$logPath\$logName"
 
         # Check if we run first time and create Log structure, else create new logfile only
         #
         if (!(Test-Path $logPath)) {
-            New-Item -Path $logPath -ItemType "Directory"
-            New-Item -Name $logName -Path $logPath -ItemType "file"
+            New-Item -Path $logPath -ItemType "Directory" | Out-Null
+            New-Item -Name $logName -Path $logPath -ItemType "file" | Out-Null
+            Start-iBISSTM1Log -Path $log -Task $Task
         }
         else {
-            New-Item -Name $logName -Path $logPath -ItemType "file"        
+            New-Item -Name $logName -Path $logPath -ItemType "file" | Out-Null
+            Start-iBISSTM1Log -Path $log -Task $Task
         }
     }
     elseif ($Task -eq "OfflineBackup") {
         # Setting up Log environment
         #
         $logPath = "C:\Users\CARSLEN\Desktop\Test\$InstanceName\logs\backups"
-        $logName = "$InstanceName-OfflineBackup-$date.log"
+        $logName = "$InstanceName-OfflineBackup-$date1.log"
         $log     = "$logPath\$logName"
         
         # Check if we run first time and create Log structure, else create new logfile only
         #
         if (!(Test-Path $logPath)) {
-            New-Item -Path $logPath -ItemType "Directory"
-            New-Item -Name $logName -Path $logPath -ItemType "file"
+            New-Item -Path $logPath -ItemType "Directory" | Out-Null
+            New-Item -Name $logName -Path $logPath -ItemType "file" | Out-Null
+            Start-iBISSTM1Log -Path $log -Task $Task 
         }
         else {
-            New-Item -Name $logName -Path $logPath -ItemType "file"        
+            New-Item -Name $logName -Path $logPath -ItemType "file" | Out-Null
+            Start-iBISSTM1Log -Path $log -Task $Task
         }
     }
     elseif ($Task -eq "OnlineBackup") {
         # Setting up Log environment
         #
         $logPath = "C:\Users\CARSLEN\Desktop\Test\$InstanceName\logs\backups"
-        $logName = "$InstanceName-OnlineBackup-$date.log"
+        $logName = "$InstanceName-OnlineBackup-$date1.log"
         $log     = "$logPath\$logName"
 
         # Check if we run first time and create Log structure, else create new logfile only
         #
         if (!(Test-Path $logPath)) {
-            New-Item -Path $logPath -ItemType "Directory"
-            New-Item -Name $logName -Path $logPath -ItemType "file"
+            New-Item -Path $logPath -ItemType "Directory" | Out-Null
+            New-Item -Name $logName -Path $logPath -ItemType "file" | Out-Null
+            Start-iBISSTM1Log -Path $log -Task $Task
         }
         else {
-            New-Item -Name $logName -Path $logPath -ItemType "file"        
+            New-Item -Name $logName -Path $logPath -ItemType "file" | Out-Null
+            Start-iBISSTM1Log -Path $log -Task $Task
         }
+
+        
     }
 
 }
