@@ -10,13 +10,15 @@ function Start-iBISSTM1Log (
         }
 
         Process{
-            Add-Content -Path $Path -Value "************************************************************************************************"
-            Add-Content -Path $Path -Value " Started processing at [$([DateTime]::Now)]."
-            Add-Content -Path $Path -Value "************************************************************************************************"
+            Add-Content -Path $Path -Value '################################################################################'
+            Add-Content -Path $Path -Value '#'
+            Add-Content -Path $Path -Value '# Started processing at [$([DateTime]::Now)].'
+            Add-Content -Path $Path -Value '#'
+            Add-Content -Path $Path -Value '################################################################################'
             Add-Content -Path $Path -Value ""
             Add-Content -Path $Path -Value " Running script task [$Task]."
             Add-Content -Path $Path -Value ""
-            Add-Content -Path $Path -Value "************************************************************************************************"
+            Add-Content -Path $Path -Value '################################################################################'
             Add-Content -Path $Path -Value ""
         }
 
@@ -43,5 +45,44 @@ function Write-iBISSTM1Log (
         End{
             
         }
+}
+
+function Write-iBISSTM1Warn (
+    [Parameter(Mandatory=$true)][string[]]$Path,
+    [Parameter(Mandatory=$true)][string[]]$Message
+    )
     
+    {
+        Begin{
+            $logDate = Get-Date -UFormat "%D %T"
+            $Value   = $logDate + " " + "WARN" + " " + $Message
+        }
+
+        Process{
+            Add-Content -Path $Path -Value $Value
+        }
+
+        End{
+            
+        }
+}
+
+function Write-iBISSTM1ERROR (
+    [Parameter(Mandatory=$true)][string[]]$Path,
+    [Parameter(Mandatory=$true)][string[]]$Message
+    )
+    
+    {
+        Begin{
+            $logDate = Get-Date -UFormat "%D %T"
+            $Value   = $logDate + " " + "WARN" + " " + $Message
+        }
+
+        Process{
+            Add-Content -Path $Path -Value $Value
+        }
+
+        End{
+            
+        }
 }
