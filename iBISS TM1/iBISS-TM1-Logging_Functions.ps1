@@ -75,7 +75,7 @@ function Write-iBISSTM1ERROR (
     {
         Begin{
             $logDate = Get-Date -UFormat "%D %T"
-            $Value   = $logDate + " " + "WARN" + " " + $Message
+            $Value   = $logDate + " " + "ERROR" + " " + $Message
         }
 
         Process{
@@ -85,4 +85,35 @@ function Write-iBISSTM1ERROR (
         End{
             
         }
+}
+
+function Write-iBISSTM1Backup (
+    [Parameter(Mandatory = $true)][ValidateSet("Online", "Offline")][string[]]$Type,
+    [Parameter(Mandatory = $true)][string[]]$Target,
+    [Parameter(Mandatory = $true)][string[]]$Source,
+    [Parameter(Mandatory = $true)][string[]]$Log
+    )
+    
+    {
+    Begin{
+        if (Test-Path -Path $env:ProgramFiles\7-zip\7z.exe) {
+            Set-Alias 7z "$env:ProgramFiles\7-zip\7z.exe"
+        }
+        else {
+            Write-iBISSTM1ERROR -Path $log -Message "7-Zip executable missing, or no 64 version installed!"
+        }
+    }
+    
+    Process{
+        if ($Type -eq "Online") {
+            7z a -x!*.cub$ -x!*.sub$ -x!*.vue$ -r $Target $Source >> $log       # Online verwendete andere 7z Opts
+        }
+        elseif ($Type -eq "Offline") {
+            7z a -r $Target $Source >> $log                                     # Offline verwendet andere 7z Opts
+        }
+    }
+
+    End{
+
+    }
 }
