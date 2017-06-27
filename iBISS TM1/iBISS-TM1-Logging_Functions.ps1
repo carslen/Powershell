@@ -87,7 +87,7 @@ function Write-iBISSTM1ERROR (
         }
 }
 
-function Create-iBISSTM1Backup (
+function Start-iBISSTM1Backup (
     [Parameter(Mandatory = $true)][ValidateSet("Online", "Offline")][string[]]$Type,
     [Parameter(Mandatory = $true)][string[]]$Target,
     [Parameter(Mandatory = $true)][string[]]$Source,
