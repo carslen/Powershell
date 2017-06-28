@@ -1,6 +1,11 @@
 Param (
-    [Parameter(Mandatory=$true,Position=1)][ValidateSet("CopyLogs", "ExpireLogs", "OfflineBackup", "OnlineBackup")] [string[]]$Task,
-    [Parameter(Mandatory=$true,Position=2)][ValidateNotNull()] [string[]]$InstanceName
+    [Parameter(Mandatory=$true,Position=1)][ValidateNotNull()] [string[]]$InstanceName,
+    [Parameter(Mandatory=$true,Position=2)][ValidateSet("CopyLogs", "ExpireLogs", "OfflineBackup", "OnlineBackup")] [string[]]$Task,
+    [Parameter(Mandatory=$false,Position=3)][ValidateNotNull()] [string[]]$ExpireDaily = "13",
+    [Parameter(Mandatory=$false,Position=3)][ValidateNotNull()] [string[]]$ExpireMonthly ="11",
+    [Parameter(Mandatory=$false,Position=3)][ValidateNotNull()] [string[]]$ExpireLogs = "28",
+    [Parameter(Mandatory=$false,Position=3)][ValidateNotNull()] [string[]]$CopyLogDestination
+    
 )
 
 # Load functions using dot sourcing
@@ -10,8 +15,8 @@ $date1   = Get-Date -UFormat "%Y-%m-%d"
 $date2   = Get-Date -Uformat "%Y-%m-%d_%H%M%S"
 $BaseDir = "C:\Users\CARSLEN\Desktop\Test"          # Muss gelöscht werden, wenn das Script in den Template-Ordner wandert/produktiv geht
 #$BaseDir = "D:\TM1"                                # Muss aktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
-$BackupBaseDir   = "$InstanceBaseDir\backups"
 $InstanceBaseDir = "$BaseDir\$InstanceName"
+$BackupBaseDir   = "$InstanceBaseDir\backups"
 $LogBaseDir      = "$InstanceBaseDir\logs"
 
 
@@ -22,7 +27,10 @@ if (!(Get-Service -Name wuauserv -ErrorAction SilentlyContinue)) { # wuauserv du
 }
 else {
     if ($Task -eq "CopyLogs") {
-        # This Task copies almost all logfiles from $
+        # This Task copies almost all logfiles from $LogBaseDir to Instance exchange share which is currently located at 
+        # \\sstr291f.emea.isn.corpintra.net\CUSTOMER\INSTANCE_DESCRIPTION
+        # Unfortunately INSTANCE description doesn't macht $InstanceName, which is the cause for the script parameter "-LogDestination".
+
         # Setting up Log environment
         #
         $LogPath = "C:\Users\CARSLEN\Desktop\Test\$InstanceName\logs\logfiles"
