@@ -119,8 +119,11 @@ function Start-iBISSTM1Backup (
         if (Test-Path -Path $env:ProgramFiles\7-zip\7z.exe) {
             Set-Alias 7z "$env:ProgramFiles\7-zip\7z.exe"
         }
+        elseif (Test-Path -Path ${env:ProgramFiles(x86)}\7-zip\7z.exe) {
+            Set-Alias -Name 7z -Value "${env:ProgramFiles(x86)}\7-zip\7z.exe"
+        }
         else {
-            Write-iBISSTM1ERROR -Path $log -Message "7-Zip executable missing, or no 64 version installed!"
+            Write-iBISSTM1ERROR -Path $log -Message "7-Zip executable missing/not found!"
             Break
         }
     }
