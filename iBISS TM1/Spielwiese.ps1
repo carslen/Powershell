@@ -13,5 +13,11 @@ if (Test-Path -Path $env:ProgramFiles\7-zip\7z.exe) {
     Write-Host -ForegroundColor Yellow $LASTEXITCODE
 }
 
-"%BCKP_ZIPPER%" %BCKP_ZIPPER_OPTS% "%BCKP_FILENAME%" "%BCKP_SOURCE%\*" 2>&1 >>"%BCKP_LOGFILE%"
+if ((Get-Date).Day -eq "27") {
+    Write-Host "Es ist Monatsanfang, Kopiere nach monthly"
+}
+else {
+    Write-Host "Nix zu tun!"
+}
 
+Get-ChildItem -Path "C:\Users\CARSLEN\Downloads" -Filter "*.jnlp" | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt 2} # | Remove-Item -Recurse -WhatIf
