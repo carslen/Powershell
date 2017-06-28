@@ -1,10 +1,10 @@
 Param (
-    [Parameter(Mandatory=$true,Position=1)][ValidateNotNull()] [string[]]$InstanceName,
-    [Parameter(Mandatory=$true,Position=2)][ValidateSet("CopyLogs", "ExpireLogs", "OfflineBackup", "OnlineBackup")] [string[]]$Task,
-    [Parameter(Mandatory=$false,Position=3)][ValidateNotNull()] [string[]]$ExpireDaily = "13",
-    [Parameter(Mandatory=$false,Position=3)][ValidateNotNull()] [string[]]$ExpireMonthly ="11",
-    [Parameter(Mandatory=$false,Position=3)][ValidateNotNull()] [string[]]$ExpireLogs = "28",
-    [Parameter(Mandatory=$false,Position=3)][ValidateNotNull()] [string[]]$CopyLogDestination
+    [Parameter(Mandatory=$true,Position=1,HelpMessage="TM1 Instance Name")][ValidateNotNull()] [string[]]$InstanceName,
+    [Parameter(Mandatory=$true,Position=2,HelpMessage="Task to execute")][ValidateSet("CopyLogs", "ExpireLogs", "OfflineBackup", "OnlineBackup")] [string[]]$Task,
+    [Parameter(Mandatory=$false,Position=3,HelpMessage="Daily backup exiration in days")][ValidateNotNull()] [int]$ExpireDaily = "13",
+    [Parameter(Mandatory=$false,Position=3,HelpMessage="Monthly backup exiration in months")][ValidateNotNull()] [int]$ExpireMonthly = "12",
+    [Parameter(Mandatory=$false,Position=3,HelpMessage="Logs exiration in days")][ValidateNotNull()] [int]$ExpireLogs = "28",
+    [Parameter(Mandatory=$false,Position=3,HelpMessage="Copy destination for Task CopyLogs")][ValidateNotNull()] [string[]]$CopyLogDestination
     
 )
 
@@ -29,7 +29,7 @@ else {
     if ($Task -eq "CopyLogs") {
         # This Task copies almost all logfiles from $LogBaseDir to Instance exchange share which is currently located at 
         # \\sstr291f.emea.isn.corpintra.net\CUSTOMER\INSTANCE_DESCRIPTION
-        # Unfortunately INSTANCE description doesn't macht $InstanceName, which is the cause for the script parameter "-LogDestination".
+        # Unfortunately INSTANCE description doesn't macht $InstanceName, which is the cause for the script parameter "-CopyLogDestination".
 
         # Setting up Log environment
         #
@@ -160,7 +160,7 @@ else {
             Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirMonthly
             Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirMonthly"
 
-            $ExpiredMonthlys = Get-ChildItem -Path $BackupDirMonthly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt 190}
+            $ExpiredMonthlys = Get-ChildItem -Path $BackupDirMonthly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt "$($ExpireMonthly * 30)"}
             foreach ($backup in $ExpiredMonthlys) {
                 Remove-Item -Path $backup.FullName
                 Write-iBISSTM1Log -Path $log -Message "Deleted expired monthly backup $backup.BaseName"          
@@ -170,7 +170,7 @@ else {
         # Exire old daily backups
         #
         Write-iBISSTM1Log -Path $log -Message "Checking for old Backups to expire..."
-        $ExpiredDailys   = Get-ChildItem -Path $BackupDirDaily | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt 13}
+        $ExpiredDailys   = Get-ChildItem -Path $BackupDirDaily | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireDaily}
         if ($ExpiredDailys.Length -gt "0") {
             foreach ($backup in $ExpiredDailys) {
                 Remove-Item -Path $backup.FullName
