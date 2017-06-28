@@ -4,21 +4,41 @@ function Start-iBISSTM1Log (
     )
 
     {
+        <#
+        .SYNOPSIS
+        Function is supposed to start a iBISS TM1 Logfile with a predefined header.
+        
+        .DESCRIPTION
+        With this function you are able to create logfiles always with the same format.
+        
+        .PARAMETER Path
+        The Path to the logfile. In all iBISS TM1 Logfiles the path is set in the powershell script using this function, e.g. $log in iBISSTM1Maintenance.ps1.
+        
+        .PARAMETER Task
+        The task for which the logfile is beeing created. In all iBISS TM1 Logfiles the task is set in the powershell script using this function, e.g. $task in iBISSTM1Maintenance.ps1.
+        
+        .EXAMPLE
+        Start-iBISSTM1Log -Path $log -Task $Task
+        
+        .NOTES
+        There are no general notes
+        #>
+
         Begin{
             #$logDate = Get-Date -UFormat "%D %T"
             #$Value   = $logDate + " " + $Message
         }
 
         Process{
-            Add-Content -Path $Path -Value '################################################################################'
-            Add-Content -Path $Path -Value '#'
-            Add-Content -Path $Path -Value '# Started processing at [$([DateTime]::Now)].'
-            Add-Content -Path $Path -Value '#'
-            Add-Content -Path $Path -Value '################################################################################'
+            Add-Content -Path $Path -Value "################################################################################"
+            Add-Content -Path $Path -Value "#"
+            Add-Content -Path $Path -Value "# Started processing at [$([DateTime]::Now)]."
+            Add-Content -Path $Path -Value "#"
+            Add-Content -Path $Path -Value "################################################################################"
             Add-Content -Path $Path -Value ""
             Add-Content -Path $Path -Value " Running script task [$Task]."
             Add-Content -Path $Path -Value ""
-            Add-Content -Path $Path -Value '################################################################################'
+            Add-Content -Path $Path -Value "################################################################################"
             Add-Content -Path $Path -Value ""
         }
 
