@@ -27,16 +27,17 @@ function Start-iBISSTM1Log (
         Begin{
             #$logDate = Get-Date -UFormat "%D %T"
             #$Value   = $logDate + " " + $Message
+            $date = Get-Date -UFormat "%d.%m.%Y %T"
         }
 
         Process{
             Add-Content -Path $Path -Value "################################################################################"
             Add-Content -Path $Path -Value "#"
-            Add-Content -Path $Path -Value "# Started processing at [$([DateTime]::Now)]."
+            Add-Content -Path $Path -Value "# Started processing at $date"
             Add-Content -Path $Path -Value "#"
             Add-Content -Path $Path -Value "################################################################################"
             Add-Content -Path $Path -Value ""
-            Add-Content -Path $Path -Value " Running script task [$Task]."
+            Add-Content -Path $Path -Value " Running script task $Task for instance ""$InstanceName""."
             Add-Content -Path $Path -Value ""
             Add-Content -Path $Path -Value "################################################################################"
             Add-Content -Path $Path -Value ""
