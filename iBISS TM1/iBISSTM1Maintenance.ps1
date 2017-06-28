@@ -10,6 +10,10 @@ $date1   = Get-Date -UFormat "%Y-%m-%d"
 $date2   = Get-Date -Uformat "%Y-%m-%d_%H%M%S"
 $BaseDir = "C:\Users\CARSLEN\Desktop\Test"          # Muss gelöscht werden, wenn das Script in den Template-Ordner wandert/produktiv geht
 #$BaseDir = "D:\TM1"                                # Muss aktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
+$BackupBaseDir   = "$InstanceBaseDir\backups"
+$InstanceBaseDir = "$BaseDir\$InstanceName"
+$LogBaseDir      = "$InstanceBaseDir\logs"
+
 
 #if (!(Get-Service -Name $InstanceName -ErrorAction SilentlyContinue)) {
 if (!(Get-Service -Name wuauserv -ErrorAction SilentlyContinue)) { # wuauserv durch $InstanceName ersetzen auf TM1 Maschinen!
@@ -18,6 +22,7 @@ if (!(Get-Service -Name wuauserv -ErrorAction SilentlyContinue)) { # wuauserv du
 }
 else {
     if ($Task -eq "CopyLogs") {
+        # This Task copies almost all logfiles from $
         # Setting up Log environment
         #
         $LogPath = "C:\Users\CARSLEN\Desktop\Test\$InstanceName\logs\logfiles"
@@ -40,7 +45,7 @@ else {
     elseif ($Task -eq "ExpireLogs") {
         # Setting up Log environment
         #
-        $LogPath = "$BaseDir\$InstanceName\logs\exirelogs"
+        $LogPath = "$InstanceBaseDir\logs\exirelogs"
         $LogName = "$InstanceName-$Task-$date2.log"
         $log     = "$LogPath\$LogName"
 
@@ -60,14 +65,14 @@ else {
     elseif ($Task -eq "OfflineBackup") {
         # Setting up Log environment
         #
-        $LogPath = "$BaseDir\$InstanceName\logs\backups"
+        $LogPath = "$InstanceBaseDir\logs\backups"
         $LogName = "$InstanceName-$Task-$date2.log"
         $log     = "$LogPath\$LogName"
 
         # Setting up Backup environment
         #
-        $BackupSource = "$BaseDir\$InstanceName\model\"
-        $BackupTarget = "$BaseDir\$InstanceName\backups\$InstanceName-$Task-$date2.zip"
+        $BackupSource = "$InstanceBaseDir\model\"
+        $BackupTarget = "$InstanceBaseDir\backups\$InstanceName-$Task-$date2.zip"
         
         # Check if we run first time and create Log structure, else create new logfile only
         #
@@ -86,10 +91,10 @@ else {
 
         # Check if we run first time and create Backup structure
         #
-        if (!(Test-Path $BaseDir\$InstanceName\backups)) {
+        if (!(Test-Path $InstanceBaseDir\backups)) {
             Write-iBISSTM1Warn -Path $log -Message "Backupdir not found, creating backupdir now."
-            New-item -Path $BaseDir\$InstanceName\backups -ItemType "Directory" | Out-Null
-            Write-iBISSTM1Log -Path $log -Message "Backupdir $BaseDir\$InstanceName\backups created successful."
+            New-item -Path $InstanceBaseDir\backups -ItemType "Directory" | Out-Null
+            Write-iBISSTM1Log -Path $log -Message "Backupdir $InstanceBaseDir\backups created successful."
         }
 
         # Finaly start offline Backup
@@ -100,16 +105,15 @@ else {
     elseif ($Task -eq "OnlineBackup") {
         # Setting up Log environment
         #
-        $LogPath = "$BaseDir\$InstanceName\logs\backups"
+        $LogPath = "$LogBaseDir\backups"
         $LogName = "$InstanceName-$Task-$date2.log"
         $log     = "$LogPath\$LogName"
         
         # Setting up Backup environment
         #
-        $BackupBaseDir    = "$BaseDir\$InstanceName\backups"
         $BackupDirDaily   = "$BackupBaseDir\daily"
         $BackupDirMonthly = "$BackupBaseDir\monthly"
-        $BackupSource     = "$BaseDir\$InstanceName\model\"
+        $BackupSource     = "$InstanceBaseDir\model\"
         $BackupTarget     = "$InstanceName-$Task-$date1.zip"
 
         # Check if we run first time and create Log structure, else create new logfile only
