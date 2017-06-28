@@ -168,12 +168,6 @@ else {
         else {
             Write-iBISSTM1Log -Path $log -Message "No old Backups to expire."
         }
-        if ($LASTEXITCODE -eq "0") {
-            Write-iBISSTM1Log -Path $log -Message "Backup completed successful."
-        }
-        else {
-            Write-iBISSTM1Warn -Path $log -Message "Backup completed with warnings."
-        }
         
     }
 
