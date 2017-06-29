@@ -1,12 +1,12 @@
 Param (
-    [Parameter(Mandatory=$true,Position=1,HelpMessage="TM1 Instance Name")][ValidateNotNull()] [string[]]$InstanceName,
-    [Parameter(Mandatory=$true,Position=2,HelpMessage="Task to execute")][ValidateSet("CopyLogs", "ExpireLogs", "OfflineBackup", "OnlineBackup")] [string[]]$Task,
-    [Parameter(Mandatory=$false,Position=3,HelpMessage="Daily backup exiration in days")][ValidateNotNull()] [int]$ExpireDaily = "13",
-    [Parameter(Mandatory=$false,Position=3,HelpMessage="Monthly backup exiration in months")][ValidateNotNull()] [int]$ExpireMonthly = "12",
-    [Parameter(Mandatory=$false,Position=3,HelpMessage="Logs exiration in days")][ValidateNotNull()] [int]$ExpireLogs = "28",
-    [Parameter(Mandatory=$false,Position=3,HelpMessage="Copy destination for Task CopyLogs")][ValidateNotNull()] [string[]]$CopyLogDestination,
-    [Parameter(Mandatory=$false,Position=3,HelpMessage="Create weekly backups")][switch]$weekly,
-    [Parameter(Mandatory=$false,Position=3,HelpMessage="Create yearly backups")][switch]$yearly 
+    [Parameter(Mandatory = $true, Position = 1, HelpMessage = "TM1 Instance Name")][ValidateNotNull()] [string[]]$InstanceName,
+    [Parameter(Mandatory = $true, Position = 2, HelpMessage = "Task to execute")][ValidateSet("CopyLogs", "ExpireLogs", "OfflineBackup", "OnlineBackup")] [string[]]$Task,
+    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Daily backup exiration in days")][ValidateNotNull()] [int]$ExpireDaily = "13",
+    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Monthly backup exiration in months")][ValidateNotNull()] [int]$ExpireMonthly = "12",
+    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Logs exiration in days")][ValidateNotNull()] [int]$ExpireLogs = "28",
+    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Copy destination for Task CopyLogs")][ValidateNotNull()] [string[]]$CopyLogDestination,
+    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Create weekly backups")][switch]$weekly,
+    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Create yearly backups")][switch]$yearly 
 )
 
 # Load functions using dot sourcing
@@ -74,15 +74,17 @@ else {
     elseif ($Task -eq "OfflineBackup") {
         # Setting up Log environment
         #
-        $LogPath = "$InstanceBaseDir\logs\backups"
+        $LogPath = "$LogBaseDir\backups"
         $LogName = "$InstanceName-$Task-$date2.log"
         $log     = "$LogPath\$LogName"
-
+        
         # Setting up Backup environment
         #
-        $BackupSource = "$InstanceBaseDir\model\"
-        $BackupTarget = "$InstanceBaseDir\backups\$InstanceName-$Task-$date2.zip"
-        
+        $BackupDirDaily   = "$BackupBaseDir\daily"
+        $BackupDirMonthly = "$BackupBaseDir\monthly"
+        $BackupSource     = "$InstanceBaseDir\model\"
+        $BackupTarget     = "$InstanceName-$Task-$date1.zip"
+
         # Check if we run first time and create Log structure, else create new logfile only
         #
         if (!(Test-Path $LogPath)) {
@@ -91,6 +93,7 @@ else {
             Start-iBISSTM1Log -Path $log -Task $Task
             Write-iBISSTM1Log -Path $log -Message "Started Logfile for Task $Task"
             Write-iBISSTM1Warn -Path $log -Message "Logdir not found, creating logdir now."
+            Write-iBISSTM1Log -Path $log -Message "Logdir $LogPath created successful."
         }
         else {
             New-Item -Name $LogName -Path $LogPath -ItemType "file" | Out-Null
@@ -100,15 +103,46 @@ else {
 
         # Check if we run first time and create Backup structure
         #
-        if (!(Test-Path $InstanceBaseDir\backups)) {
-            Write-iBISSTM1Warn -Path $log -Message "Backupdir not found, creating backupdir now."
-            New-item -Path $InstanceBaseDir\backups -ItemType "Directory" | Out-Null
-            Write-iBISSTM1Log -Path $log -Message "Backupdir $InstanceBaseDir\backups created successful."
+        if (!(Test-Path $BackupBaseDir)) {
+            Write-iBISSTM1Warn -Path $log -Message "Backupdirs not found, creating backupdirs now."
+            New-item -Path $BackupBaseDir\daily -ItemType "Directory" | Out-Null
+            New-item -Path $BackupBaseDir\monthly -ItemType "Directory" | Out-Null
+            Write-iBISSTM1Log -Path $log -Message "Backupdirs in $BackupBaseDir created successful."
         }
 
         # Finaly start offline Backup
         #
-        Start-iBISSTM1Backup -Type Offline -Target $BackupTarget -Source $BackupSource
+        Start-iBISSTM1Backup -Type Offline -Target $BackupDirDaily\$BackupTarget -Source $BackupSource
+        
+        # First day in month? Copy backup also to monthly and expire old ones
+        #
+        if ((Get-Date).Day -eq "1") {
+            Write-iBISSTM1Log -Path $log -Message "1st day of month detected, creating monthly backup!"
+            Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirMonthly
+            Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirMonthly"
+
+            $ExpiredMonthlys = Get-ChildItem -Path $BackupDirMonthly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt "$($ExpireMonthly * 30)"}
+            foreach ($backup in $ExpiredMonthlys) {
+                Remove-Item -Path $backup.FullName
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired monthly backup $backup.BaseName"          
+            }
+        }
+
+        # Exire old daily backups
+        #
+        Write-iBISSTM1Log -Path $log -Message "Checking for old Backups to expire..."
+        $ExpiredDailys   = Get-ChildItem -Path $BackupDirDaily | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireDaily}
+        if ($ExpiredDailys.Length -gt "0") {
+            foreach ($backup in $ExpiredDailys) {
+                Remove-Item -Path $backup.FullName
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired daily backup $backup.BaseName"          
+            }    
+        }
+        else {
+            Write-iBISSTM1Log -Path $log -Message "No old Backups to expire."
+        }
+        
+        Stop-iBISSTM1Log -Path $log -Task $Task
 
     }
     elseif ($Task -eq "OnlineBackup") {
