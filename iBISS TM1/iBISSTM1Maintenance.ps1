@@ -182,6 +182,7 @@ else {
             Write-iBISSTM1Log -Path $log -Message "No old Backups to expire."
         }
         
-    }
+        Stop-iBISSTM1Log -Path $log -Task $Task
+    } 
 
 }
