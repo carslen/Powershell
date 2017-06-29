@@ -137,15 +137,15 @@ function Start-iBISSTM1Backup (
             Remove-Item -Path "$env:TEMP\7ztemp.log"
             if ($LASTEXITCODE -eq "0") {
                 Add-Content -Path $log -Value ""
-                Write-iBISSTM1Log -Path $log -Message "Backup completed successful."
+                Write-iBISSTM1Log -Path $log -Message "Backup of $Source completed successful."
             }
             elseif ($LASTEXITCODE -eq "1") {
                 Add-Content -Path $log -Value ""
-                Write-iBISSTM1Warn -Path $log -Message "Backup completed with warnings."
+                Write-iBISSTM1Warn -Path $log -Message "Backup of $Source completed with warnings."
             }
             elseif ($LASTEXITCODE -eq "2") {
                 Add-Content -Path $log -Value ""
-                Write-iBISSTM1ERROR -Path $log -Message "Backup failed!"
+                Write-iBISSTM1ERROR -Path $log -Message "Backup of $Source failed!"
             }
         }
         elseif ($Type -eq "Offline") {
