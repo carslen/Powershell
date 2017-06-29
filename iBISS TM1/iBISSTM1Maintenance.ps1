@@ -4,8 +4,9 @@ Param (
     [Parameter(Mandatory=$false,Position=3,HelpMessage="Daily backup exiration in days")][ValidateNotNull()] [int]$ExpireDaily = "13",
     [Parameter(Mandatory=$false,Position=3,HelpMessage="Monthly backup exiration in months")][ValidateNotNull()] [int]$ExpireMonthly = "12",
     [Parameter(Mandatory=$false,Position=3,HelpMessage="Logs exiration in days")][ValidateNotNull()] [int]$ExpireLogs = "28",
-    [Parameter(Mandatory=$false,Position=3,HelpMessage="Copy destination for Task CopyLogs")][ValidateNotNull()] [string[]]$CopyLogDestination
-    
+    [Parameter(Mandatory=$false,Position=3,HelpMessage="Copy destination for Task CopyLogs")][ValidateNotNull()] [string[]]$CopyLogDestination,
+    [Parameter(Mandatory=$false,Position=3,HelpMessage="Create weekly backups")][switch]$weekly,
+    [Parameter(Mandatory=$false,Position=3,HelpMessage="Create yearly backups")][switch]$yearly 
 )
 
 # Load functions using dot sourcing
