@@ -61,7 +61,7 @@ function Stop-iBISSTM1Log (
     {
         <#
         .SYNOPSIS
-        Function is supposed to start a iBISS TM1 Logfile with a predefined header.
+        Function is supposed to stop a iBISS TM1 Logfile with a predefined footer.
         
         .DESCRIPTION
         With this function you are able to create logfiles always with the same format.
@@ -76,7 +76,7 @@ function Stop-iBISSTM1Log (
         Optional parameter for TM1 instance Name, if not set in calling Powershell script itself.
 
         .EXAMPLE
-        Start-iBISSTM1Log -Path $log -Task $Task
+        Stop-iBISSTM1Log -Path $log -Task $Task
         
         .NOTES
         There are no general notes
@@ -112,6 +112,31 @@ function Write-iBISSTM1Log (
     )
     
     {
+        <#
+        .SYNOPSIS
+        Add a log entry.
+        
+        .DESCRIPTION
+        Function is supposed to add a log entry with loglevel INFO.
+        
+        .PARAMETER Path
+        The Path to the logfile. In all iBISS TM1 Logfiles the path is set in the powershell script using this function, e.g. $log in iBISSTM1Maintenance.ps1.
+        
+        .PARAMETER Task
+        The task for which the logfile is beeing created. In all iBISS TM1 Logfiles the task is set in the powershell script using this function, e.g. $task in iBISSTM1Maintenance.ps1.
+        
+        .PARAMETER InstanceName
+        Optional parameter for TM1 instance Name, if not set in calling Powershell script itself.
+        
+        .EXAMPLE
+        Write-iBISSTM1Log -Path $log -Message "some information" 
+        
+        .NOTES
+        General notes
+
+        .LINK
+        Original code can be found on GitHub: https://github.com/carslen
+        #>
         Begin{
             $logDate = Get-Date -UFormat "%d.%m.%Y %T"
             $Value   = $logDate + " " + "INFO" + " " + $Message
