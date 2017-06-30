@@ -248,27 +248,24 @@ function Confirm-iBISSTM1InstanceName (
         Version 0.1:
             General availability of function deployed.
         #>
+        
         if (!$CheckFilesystem -and !$CheckService) {
             Write-Warning -Message "To check Instance please select either '-CheckFilesystem' or '-CheckService' switch"
             break
         }
 
         if ($CheckFilesystem) {
-            #if (!(Get-Service -Name $InstanceName -ErrorAction SilentlyContinue)) {
-            if (!(Get-Service -Name "wuauserv" -ErrorAction SilentlyContinue)) {
-                #Write-Warning -Message "No TM1 service registered with given InstanceName ""$InstanceName"". Abort!"
+            if (!(Get-Service -Name $InstanceName -ErrorAction SilentlyContinue)) {
                 Write-Error -Message "Service $InstanceName not found" -ErrorId ServiceNotFound -Category ObjectNotFound -RecommendedAction "Use correct TM1 instance name!"
                 break
             }
             else {
-                [string[]]$BaseDir = "C:\Users\CARSLEN\Desktop\Test"
-                #[string[]]$BaseDir = "D:\TM1"
+                [string[]]$BaseDir = "D:\TM1"
                 if (Test-Path -Path "$BaseDir\$InstanceName") {
                     return "$BaseDir\$InstanceName"
                 }
                 else {
                     $temp = Get-ChildItem -Path $BaseDir -Directory
-                    #$temp = Get-ChildItem -Path $BaseDir -Directory
                     foreach ($dir in $temp) {
                         $BaseName = $dir.BaseName
                         if ($InstanceName -match $BaseName) {
@@ -280,14 +277,12 @@ function Confirm-iBISSTM1InstanceName (
             }
         }
         elseif ($CheckService) {
-            #if (!(Get-Service -Name $InstanceName -ErrorAction SilentlyContinue)) {
-            if (!(Get-Service -Name "wuauserv" -ErrorAction SilentlyContinue)) {
+            if (!(Get-Service -Name $InstanceName -ErrorAction SilentlyContinue)) {
                 Write-Error -Message "Service $InstanceName not found" -ErrorId ServiceNotFound -Category ObjectNotFound -RecommendedAction "Use correct TM1 instance name!"
                 break
             }
             else {
-                $InstanceSRVName = Get-Service -Name wuauserv # Wird während Entwicklung genutzt.
-                $InstanceSRVName = Get-Service -Name $InstanceName # Production use!
+                $InstanceSRVName = Get-Service -Name $InstanceName
                 return $InstanceSRVName
             }
         }
