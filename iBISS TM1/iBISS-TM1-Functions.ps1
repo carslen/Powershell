@@ -216,6 +216,38 @@ function Confirm-iBISSTM1InstanceName (
     )
 
     {
+        <#
+        .SYNOPSIS
+        Confirm existance of TM1 instance base filesystem directory and TM1 instance service.
+        
+        .DESCRIPTION
+        Confirm-iBISTM1InstanceName has two functions:
+            - Get the right filesystem directory for given TM1 instance name, which is normaly located under D:\TM1.
+            - Check if there is a service registered as named in InstanceName
+        
+        .PARAMETER InstanceName
+        InstanceName expexts the TM1 instance name as STRING.
+        
+        .PARAMETER CheckService
+        With this switch selected the function will search registered windows services for InstanceName. This switch cannot be combined with "CheckFilesystem".
+        
+        .PARAMETER CheckFilesystem
+        With this switch selected the function will determine the TM1 instance base directory which is normaly located under D:\TM1. This switch cannot be combined with "CheckService".
+        
+        .PARAMETER LogFile
+        Logfile expects a path to a logfile. This is optionaly and will possibly removed with one of the next releases of this function.
+        
+        .EXAMPLE
+        To get the TM1 instance filesystem base directory use:
+            Confirm-iBISSTM1InstanceName -InstanceName "TM1_Instance" -CheckFilesystem
+        
+        To verify the TM1 instance service use:
+            Confirm-iBISSTM1InstanceName -InstanceName "TM1_Instance" -CheckService
+                
+        .NOTES
+        Version 0.1:
+            General availability of function deployed.
+        #>
         if (!$CheckFilesystem -and !$CheckService) {
             Write-Warning -Message "To check Instance please select either '-CheckFilesystem' or '-CheckService' switch"
             break
