@@ -255,46 +255,47 @@ function Start-iBISSTM1Backup (
     )
     
     {
-    Begin{
-        if (Test-Path -Path $env:ProgramFiles\7-zip\7z.exe) {
-            Set-Alias 7z "$env:ProgramFiles\7-zip\7z.exe"
-        }
-        elseif (Test-Path -Path ${env:ProgramFiles(x86)}\7-zip\7z.exe) {
-            Set-Alias -Name 7z -Value "${env:ProgramFiles(x86)}\7-zip\7z.exe"
-        }
-        else {
-            Write-iBISSTM1ERROR -Path $log -Message "7-Zip executable missing/not found!"
-            Break
-        }
-    }
-    
-    Process{
-        if ($Type -eq "Online") {
-            Write-iBISSTM1Log -Path $log -Message "Starting TM1 $Task"
-            7z a -tzip '-xr!*.cub' '-xr!*.sub' '-xr!*.vue' $Target $Source -bso1 > $env:TEMP\7ztemp.log
-            Add-Content -Path $log -Value (Get-Content $env:TEMP\7ztemp.log)
-            Remove-Item -Path "$env:TEMP\7ztemp.log"
-            if ($LASTEXITCODE -eq "0") {
-                Add-Content -Path $log -Value ""
-                Write-iBISSTM1Log -Path $log -Message "Backup of $Source completed successful."
-            }
-            elseif ($LASTEXITCODE -eq "1") {
-                Add-Content -Path $log -Value ""
-                Write-iBISSTM1Warn -Path $log -Message "Backup of $Source completed with warnings."
-            }
-            elseif ($LASTEXITCODE -eq "2") {
-                Add-Content -Path $log -Value ""
-                Write-iBISSTM1ERROR -Path $log -Message "Backup of $Source failed!"
-            }
-        }
-        elseif ($Type -eq "Offline") {
-            7z a -r $Target $Source >> $log                                     # Offline verwendet andere 7z Opts
-        }
-    }
 
-    End{
-        s
-    }
+        Begin{
+            if (Test-Path -Path $env:ProgramFiles\7-zip\7z.exe) {
+                Set-Alias 7z "$env:ProgramFiles\7-zip\7z.exe"
+            }
+            elseif (Test-Path -Path ${env:ProgramFiles(x86)}\7-zip\7z.exe) {
+                Set-Alias -Name 7z -Value "${env:ProgramFiles(x86)}\7-zip\7z.exe"
+            }
+            else {
+                Write-iBISSTM1ERROR -Path $log -Message "7-Zip executable missing/not found!"
+                Break
+            }
+        }
+        
+        Process{
+            if ($Type -eq "Online") {
+                Write-iBISSTM1Log -Path $log -Message "Starting TM1 $Task"
+                7z a -tzip '-xr!*.cub' '-xr!*.sub' '-xr!*.vue' $Target $Source -bso1 > $env:TEMP\7ztemp.log
+                Add-Content -Path $log -Value (Get-Content $env:TEMP\7ztemp.log)
+                Remove-Item -Path "$env:TEMP\7ztemp.log"
+                if ($LASTEXITCODE -eq "0") {
+                    Add-Content -Path $log -Value ""
+                    Write-iBISSTM1Log -Path $log -Message "Backup of $Source completed successful."
+                }
+                elseif ($LASTEXITCODE -eq "1") {
+                    Add-Content -Path $log -Value ""
+                    Write-iBISSTM1Warn -Path $log -Message "Backup of $Source completed with warnings."
+                }
+                elseif ($LASTEXITCODE -eq "2") {
+                    Add-Content -Path $log -Value ""
+                    Write-iBISSTM1ERROR -Path $log -Message "Backup of $Source failed!"
+                }
+            }
+            elseif ($Type -eq "Offline") {
+                7z a -r $Target $Source >> $log                                     # Offline verwendet andere 7z Opts
+            }
+        }
+
+        End{
+            
+        }
 }
 
 function Confirm-iBISSTM1InstanceName (
