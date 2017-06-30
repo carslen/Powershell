@@ -204,6 +204,59 @@ function Start-iBISSTM1Backup (
     }
 
     End{
-
+        s
     }
 }
+
+function Confirm-iBISSTM1InstanceName (
+    [Parameter(Mandatory = $true, Position = 1, HelpMessage = "TM1 instance name")][ValidateNotNull()] [string[]]$InstanceName,
+    [Parameter(Mandatory = $false, Position = 2, HelpMessage = "Validate TM1 instance service name")][ValidateNotNull()] [switch]$CheckService,
+    [Parameter(Mandatory = $false, Position = 2, HelpMessage = "TM1 instance filesystem basedirectory")][ValidateNotNull()] [switch]$CheckFilesystem,
+    [Parameter(Mandatory = $false, Position = 2, HelpMessage = "Path to logfile for output")][ValidateNotNull()] [string[]]$LogFile
+    )
+
+    {
+        if (!$CheckFilesystem -and !$CheckService) {
+            Write-Warning -Message "To check Instance please select either '-CheckFilesystem' or '-CheckService' switch"
+            break
+        }
+
+        if ($CheckFilesystem) {
+            #if (!(Get-Service -Name $InstanceName -ErrorAction SilentlyContinue)) {
+            if (!(Get-Service -Name "wuauserv" -ErrorAction SilentlyContinue)) {
+                #Write-Warning -Message "No TM1 service registered with given InstanceName ""$InstanceName"". Abort!"
+                Write-Error -Message "Service $InstanceName not found" -ErrorId ServiceNotFound -Category ObjectNotFound -RecommendedAction "Use correct TM1 instance name!"
+                break
+            }
+            else {
+                [string[]]$BaseDir = "C:\Users\CARSLEN\Desktop\Test"
+                #[string[]]$BaseDir = "D:\TM1"
+                if (Test-Path -Path "$BaseDir\$InstanceName") {
+                    return "$BaseDir\$InstanceName"
+                }
+                else {
+                    $temp = Get-ChildItem -Path $BaseDir -Directory
+                    #$temp = Get-ChildItem -Path $BaseDir -Directory
+                    foreach ($dir in $temp) {
+                        $BaseName = $dir.BaseName
+                        if ($InstanceName -match $BaseName) {
+                            $InstanceName = $BaseName
+                            return "$BaseDir\$InstanceName"
+                        }
+                    }
+                }
+            }
+        }
+        elseif ($CheckService) {
+            #if (!(Get-Service -Name $InstanceName -ErrorAction SilentlyContinue)) {
+            if (!(Get-Service -Name "wuauserv" -ErrorAction SilentlyContinue)) {
+                Write-Error -Message "Service $InstanceName not found" -ErrorId ServiceNotFound -Category ObjectNotFound -RecommendedAction "Use correct TM1 instance name!"
+                break
+            }
+            else {
+                $InstanceSRVName = Get-Service -Name wuauserv # Wird während Entwicklung genutzt.
+                $InstanceSRVName = Get-Service -Name $InstanceName # Production use!
+                return $InstanceSRVName
+            }
+        }
+    }
