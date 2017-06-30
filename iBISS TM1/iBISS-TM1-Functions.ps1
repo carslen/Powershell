@@ -112,6 +112,7 @@ function Write-iBISSTM1Log (
     )
     
     {
+        
         <#
         .SYNOPSIS
         Add a log entry.
@@ -137,6 +138,7 @@ function Write-iBISSTM1Log (
         .LINK
         Original code can be found on GitHub: https://github.com/carslen
         #>
+
         Begin{
             $logDate = Get-Date -UFormat "%d.%m.%Y %T"
             $Value   = $logDate + " " + "INFO" + " " + $Message
