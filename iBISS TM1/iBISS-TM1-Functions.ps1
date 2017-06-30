@@ -54,7 +54,8 @@ function Start-iBISSTM1Log (
 
 function Stop-iBISSTM1Log (
     [Parameter(Mandatory=$true)][ValidateNotNull()][string[]]$Path,
-    [Parameter(Mandatory=$true)][ValidateNotNull()][string[]]$Task
+    [Parameter(Mandatory=$true)][ValidateNotNull()][string[]]$Task,
+    [Parameter(Mandatory=$false)][ValidateNotNull()][string[]]$InstanceName
     )
 
     {
@@ -71,6 +72,9 @@ function Stop-iBISSTM1Log (
         .PARAMETER Task
         The task for which the logfile is beeing created. In all iBISS TM1 Logfiles the task is set in the powershell script using this function, e.g. $task in iBISSTM1Maintenance.ps1.
         
+        .PARAMETER InstanceName
+        Optional parameter for TM1 instance Name, if not set in calling Powershell script itself.
+
         .EXAMPLE
         Start-iBISSTM1Log -Path $log -Task $Task
         
