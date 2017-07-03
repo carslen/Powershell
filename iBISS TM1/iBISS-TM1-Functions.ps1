@@ -427,7 +427,8 @@ function Confirm-iBISSTM1InstanceName (
                 break
             }
             else {
-                [string[]]$BaseDir = "D:\TM1"
+                #[string[]]$BaseDir = "D:\TM1"
+                [string[]]$BaseDir = "C:\Users\CARSLEN\Desktop\Test"
                 if (Test-Path -Path "$BaseDir\$InstanceName") {
                     return "$BaseDir\$InstanceName"
                 }
