@@ -14,7 +14,7 @@ Param (
 . "C:\Users\CARSLEN\Documents\git\Powershell\iBISS TM1\iBISS-TM1-Functions.ps1"
 $date1   = Get-Date -UFormat "%Y-%m-%d"
 $date2   = Get-Date -Uformat "%Y-%m-%d_%H%M%S"
-$BaseDir = "C:\Users\CARSLEN\Desktop\Test"          # Muss gelöscht werden, wenn das Script in den Template-Ordner wandert/produktiv geht
+$BaseDir = "C:\Users\CARSLEN\Desktop\Test"          # Muss deaktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
 #$BaseDir = "D:\TM1"                                # Muss aktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
 $InstanceBaseDir = "$BaseDir\$InstanceName"
 $BackupBaseDir   = "$InstanceBaseDir\backups"
@@ -34,8 +34,8 @@ else {
 
         # Setting up Log environment
         #
-        $LogPath = "C:\Users\CARSLEN\Desktop\Test\$InstanceName\logs\logfiles"
-        $LogName = "$InstanceName-CopyLogs-$date2.log"
+        $LogPath = "$LogBaseDir\logfiles"
+        $LogName = "$InstanceName-$Task-$date2.log"
         $log     = "$LogPath\$LogName"
         
         # Check if we run first time and create Log structure, else create new logfile only
@@ -50,6 +50,10 @@ else {
             New-Item -Name $LogName -Path $LogPath -ItemType "file"
             Start-iBISSTM1Log -Path $log -Task $Task
         }
+
+        # Starting things to do!
+        #
+        # TBD!
     }
     elseif ($Task -eq "ExpireLogs") {
         # Setting up Log environment
@@ -82,7 +86,7 @@ else {
         #
         $BackupDirDaily   = "$BackupBaseDir\daily"
         $BackupDirMonthly = "$BackupBaseDir\monthly"
-        $BackupSource     = "$InstanceBaseDir\model\"
+        $BackupSource     = "$InstanceBaseDir\model"
         $BackupTarget     = "$InstanceName-$Task-$date1.zip"
 
         # Check if we run first time and create Log structure, else create new logfile only
@@ -156,7 +160,7 @@ else {
         #
         $BackupDirDaily   = "$BackupBaseDir\daily"
         $BackupDirMonthly = "$BackupBaseDir\monthly"
-        $BackupSource     = "$InstanceBaseDir\model\"
+        $BackupSource     = "$InstanceBaseDir\model"
         $BackupTarget     = "$InstanceName-$Task-$date1.zip"
 
         # Check if we run first time and create Log structure, else create new logfile only
