@@ -12,6 +12,9 @@ Param (
 # Load functions using dot sourcing
 #
 . "C:\Users\CARSLEN\Documents\git\Powershell\iBISS TM1\iBISS-TM1-Functions.ps1"
+
+# Some baseline variables 
+#
 $date1   = Get-Date -UFormat "%Y-%m-%d"
 $date2   = Get-Date -Uformat "%Y-%m-%d_%H%M%S"
 $BaseDir = "C:\Users\CARSLEN\Desktop\Test"          # Muss deaktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
@@ -21,8 +24,7 @@ $BackupBaseDir   = "$InstanceBaseDir\backups"
 $LogBaseDir      = "$InstanceBaseDir\logs"
 
 
-#if (!(Get-Service -Name $InstanceName -ErrorAction SilentlyContinue)) {
-if (!(Get-Service -Name wuauserv -ErrorAction SilentlyContinue)) { # wuauserv durch $InstanceName ersetzen auf TM1 Maschinen!
+if (!(Get-Service -Name $InstanceName -ErrorAction SilentlyContinue)) {
     Write-Warning -Message "Service ""$InstanceName"" doesn't exists!"
     Break
 }
