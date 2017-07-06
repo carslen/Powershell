@@ -21,3 +21,39 @@ else {
 }
 
 Get-ChildItem -Path "C:\Users\CARSLEN\Downloads" -Filter "*.jnlp" | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt 2} # | Remove-Item -Recurse -WhatIf
+
+[int]$expire ="10"
+(Get-ChildItem -Path "C:\Users\CARSLEN\Downloads" | Where-Object {((Get-Date) - $_.LastWriteTime).days -gt "$($expire * 10)"}).Length # | Remove-Item -Recurse -WhatIf
+(Get-ChildItem -Path "C:\Users\CARSLEN\Downloads" | Where-Object {((Get-Date) - $_.LastWriteTime).days -gt "100"}).Length
+
+Start-Transcript
+
+Get-ChildItem -Path C:\Users\CARSLEN\Desktop\Test\ | Where-Object {$_.BaseName -match "itc-int" -and $_.Extension -eq ""}
+
+(Get-ChildItem -Path C:\Users\CARSLEN\Desktop\Test\itc).BaseName
+
+$InstanceName = "itc_int"
+$temp = Get-ChildItem -Path C:\Users\CARSLEN\Desktop\Test -Directory
+#$temp = Get-ChildItem -Path $BaseDir -Directory
+foreach ($dir in $temp) {
+    $BaseName = $dir.BaseName
+    if ($InstanceName -match $BaseName) {
+        Write-Host -ForegroundColor Yellow "Input InstanceName was: " -NoNewline
+        Write-Host -ForegroundColor Red "$InstanceName"
+        $InstanceName = $BaseName
+        Write-Host -ForegroundColor Yellow "Correct InstanceName is: " -NoNewline
+        Write-Host -ForegroundColor Green "$InstanceName"
+        Break
+    }
+}
+Write-Host -ForegroundColor DarkGreen $BaseName
+
+"ITC" -match "itc_int"
+"itc_int" -match "ITC"
+
+$temp[1] -match $InstanceName
+$InstanceName -match $temp[1]
+
+[System.Math]::Round(12.12345,2)
+
+(Get-date).DayOfWeek -eq "Wednesday"
