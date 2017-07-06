@@ -1,3 +1,5 @@
+#Requires -RunAsAdministrator
+
 Param (
     #[Parameter(Mandatory = $true, Position = 1, HelpMessage = "TM1 instance service name")][ValidateNotNull()] [string[]]$ServiceName,
     #[Parameter(Mandatory = $true, Position = 2, HelpMessage = "TM1 instance directory name as available below d:\tm1")][ValidateNotNull()] [string[]]$InstanceFilesystemBaseName,
