@@ -1,13 +1,43 @@
 Param (
-    [Parameter(Mandatory = $true, Position = 1, HelpMessage = "TM1 Instance Name")][ValidateNotNull()] [string[]]$InstanceName,
-    [Parameter(Mandatory = $true, Position = 2, HelpMessage = "Task to execute")][ValidateSet("CopyLogs", "ExpireLogs", "OfflineBackup", "OnlineBackup")] [string[]]$Task,
-    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Daily backup exiration in days")][ValidateNotNull()] [int]$ExpireDaily = "13",
-    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Monthly backup exiration in months")][ValidateNotNull()] [int]$ExpireMonthly = "12",
-    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Logs exiration in days")][ValidateNotNull()] [int]$ExpireLogs = "28",
-    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Copy destination for Task CopyLogs")][ValidateNotNull()] [string[]]$CopyLogDestination,
-    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Create weekly backups")][switch]$weekly,
-    [Parameter(Mandatory = $false, Position = 3, HelpMessage = "Create yearly backups")][switch]$yearly 
+    #[Parameter(Mandatory = $true, Position = 1, HelpMessage = "TM1 instance service name")][ValidateNotNull()] [string[]]$ServiceName,
+    #[Parameter(Mandatory = $true, Position = 2, HelpMessage = "TM1 instance directory name as available below d:\tm1")][ValidateNotNull()] [string[]]$InstanceFilesystemBaseName,
+    [Parameter(Mandatory = $true, Position = 1, HelpMessage = "Task to execute")][ValidateSet("CopyLogs", "ExpireLogs", "OfflineBackup", "OnlineBackup")] [string[]]$Task
+    #[Parameter(Mandatory = $false, Position = 4, HelpMessage = "Copy destination for Task CopyLogs")][ValidateNotNull()] [string[]]$CopyLogDestination
 )
+
+<#
+    ####################################################################################################################################################################################
+    START CONFIGURATION SECTION
+#>
+
+# TM1 Basenames
+#
+$ServiceName = "Tomcat8" # TM1 instance service name
+$InstanceFilesystemBaseName = "Tomcat82" # TM1 instance directory name as available below D:\TM1\
+$CopyLogDestination = "" # Copy destination for task CopyLogs
+
+# Backup configuration
+#
+$weekly = "$true" # If set to $true, then weekly backups will be created
+$yearly = "$true" # If set to $true, then yearly backups will be created
+
+# Backup expiration configuration
+#
+[int]$ExpireDaily = "1" # specify in number of days, e.g. "13" for 14 days
+[int]$ExpireWeekly = "28" # specify in number of days, e.g. "28" for 28 days/4 weeks, takes only affect if $weekly is set to $true
+[int]$ExpireMonthly = "180" # specify in number of days, e.g. "180" for ~ 6 months
+[int]$ExpireYearly = "365" # specify in number of days, e.g. "365" for 1 year, takes only affect if $yearly is set to $true
+
+# Logfile expiration configuration
+#
+[int]$ExpireLogs = "28"  # specify in number of days
+
+<#
+    END CONFIGURATION SECTION
+    DO NOT CHANGE ANY LINE BELOW THIS CONFIGURATION SECTION
+    ####################################################################################################################################################################################
+#>
+
 
 # Load functions using dot sourcing
 #
@@ -15,30 +45,30 @@ Param (
 
 # Some baseline variables 
 #
-$date1   = Get-Date -UFormat "%Y-%m-%d"
-$date2   = Get-Date -Uformat "%Y-%m-%d_%H%M%S"
-$BaseDir = "C:\Users\CARSLEN\Desktop\Test"          # Muss deaktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
-#$BaseDir = "D:\TM1"                                # Muss aktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
-$InstanceBaseDir = "$BaseDir\$InstanceName"
-$BackupBaseDir   = "$InstanceBaseDir\backups"
-$LogBaseDir      = "$InstanceBaseDir\logs"
+$date1 = Get-Date -UFormat "%Y-%m-%d"
+$date2 = Get-Date -Uformat "%Y-%m-%d_%H%M%S"
+$BaseDir = "C:\Users\CARSLEN\Desktop\Test"# Muss deaktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
+#$BaseDir = "D:\TM1"                      # Muss aktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
+$InstanceBaseDir = "$BaseDir\$InstanceFilesystemBaseName"
+$BackupBaseDir = "$InstanceBaseDir\backups"
+$LogBaseDir = "$InstanceBaseDir\logs"
 
 
-if (!(Get-Service -Name $InstanceName -ErrorAction SilentlyContinue)) {
-    Write-Warning -Message "Service ""$InstanceName"" doesn't exists!"
+if (!(Get-Service -Name $ServiceName -ErrorAction SilentlyContinue)) {
+    Write-Warning -Message "Service ""$ServiceName"" doesn't exists!"
     Break
 }
 else {
     if ($Task -eq "CopyLogs") {
         # This Task copies almost all logfiles from $LogBaseDir to Instance exchange share which is currently located at 
         # \\sstr291f.emea.isn.corpintra.net\CUSTOMER\INSTANCE_DESCRIPTION
-        # Unfortunately INSTANCE description doesn't macht $InstanceName, which is the cause for the script parameter "-CopyLogDestination".
+        # Unfortunately INSTANCE description doesn't macht $ServiceName, which is the cause for the config parameter $CopyLogDestination.
 
         # Setting up Log environment
         #
         $LogPath = "$LogBaseDir\logfiles"
-        $LogName = "$InstanceName-$Task-$date2.log"
-        $log     = "$LogPath\$LogName"
+        $LogName = "$ServiceName-$Task-$date2.log"
+        $log = "$LogPath\$LogName"
         
         # Check if we run first time and create Log structure, else create new logfile only
         #
@@ -56,13 +86,14 @@ else {
         # Starting things to do!
         #
         # TBD!
+        Copy-Item -Path $CopyLogDestination
     }
     elseif ($Task -eq "ExpireLogs") {
         # Setting up Log environment
         #
         $LogPath = "$InstanceBaseDir\logs\exirelogs"
-        $LogName = "$InstanceName-$Task-$date2.log"
-        $log     = "$LogPath\$LogName"
+        $LogName = "$ServiceName-$Task-$date2.log"
+        $log = "$LogPath\$LogName"
 
         # Check if we run first time and create Log structure, else create new logfile only
         #
@@ -81,15 +112,17 @@ else {
         # Setting up Log environment
         #
         $LogPath = "$LogBaseDir\backups"
-        $LogName = "$InstanceName-$Task-$date2.log"
-        $log     = "$LogPath\$LogName"
+        $LogName = "$ServiceName-$Task-$date2.log"
+        $log = "$LogPath\$LogName"
         
         # Setting up Backup environment
         #
-        $BackupDirDaily   = "$BackupBaseDir\daily"
+        $BackupDirDaily = "$BackupBaseDir\daily"
+        $BackupDirweekly = "$BackupBaseDir\weekly"
         $BackupDirMonthly = "$BackupBaseDir\monthly"
-        $BackupSource     = "$InstanceBaseDir\model"
-        $BackupTarget     = "$InstanceName-$Task-$date1.zip"
+        $BackupDirYearly = "$BackupBaseDir\yearly"
+        $BackupSource = "$InstanceBaseDir\model"
+        $BackupTarget = "$ServiceName-$Task-$date1.zip"
 
         # Check if we run first time and create Log structure, else create new logfile only
         #
@@ -115,12 +148,35 @@ else {
             New-item -Path $BackupBaseDir\monthly -ItemType "Directory" | Out-Null
             Write-iBISSTM1Log -Path $log -Message "Backupdirs in $BackupBaseDir created successful."
         }
+        elseif ($weekly -and !(Test-Path $BackupBaseDir\weekly)) {
+            New-item -Path $BackupBaseDir\weekly -ItemType "Directory" | Out-Null
+            Write-iBISSTM1Log -Path $log -Message "Created additional backupdir for weekly backup successful."
+        }
+        elseif ($yearly -and !(Test-Path $BackupBaseDir\yearly)) {
+            New-item -Path $BackupBaseDir\yearly -ItemType "Directory" | Out-Null
+            Write-iBISSTM1Log -Path $log -Message "Created additional backupdir for yearly backup successful."
+        }
 
         # Finaly start offline Backup
         #
-        Start-iBISSTM1Backup -Type Offline -Target $BackupDirDaily\$BackupTarget -Source $BackupSource
+        Start-iBISSTM1Backup -Type Offline -Target $BackupDirDaily\$BackupTarget -Source $BackupSource -ServiceName $ServiceName
         
-        # First day in month? Copy backup also to monthly and expire old ones
+        # First day of year? Copy backup also to yearly and exipre old ones
+        #
+        if ((Get-Date).DayOfYear -eq "1" -and $yearly -eq "$true") {
+            Write-iBISSTM1Log -Path $log -Message "1st day of year detected, creating yearly backup!"
+            Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirYearly
+            Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirYearly"
+
+            $ExpiredYearlys = Get-ChildItem -Path $BackupDirYearly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireYearly}
+            foreach ($backup in $ExpiredYearlys) {
+                Remove-Item -Path $backup.FullName
+                $deleted = $backup.BaseName
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired yearly backup $deleted"
+            }
+        }
+        
+        # First day of month? Copy backup also to monthly and expire old ones
         #
         if ((Get-Date).Day -eq "1") {
             Write-iBISSTM1Log -Path $log -Message "1st day of month detected, creating monthly backup!"
@@ -130,18 +186,34 @@ else {
             $ExpiredMonthlys = Get-ChildItem -Path $BackupDirMonthly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt "$($ExpireMonthly * 30)"}
             foreach ($backup in $ExpiredMonthlys) {
                 Remove-Item -Path $backup.FullName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired monthly backup $backup.BaseName"          
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired monthly backup $deleted"
+            }
+        }
+
+        # Last day of week? Copy backup also to weekly and exipre old ones
+        #
+        if ((Get-Date).DayOfWeek -eq "Sunday" -and $weekly -eq "$true") {
+            Write-iBISSTM1Log -Path $log -Message "Last day of week detected, creating weekly backup!"
+            Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirWeekly
+            Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirWeekly"
+
+            $Expiredweeklys = Get-ChildItem -Path $BackupDirWeekly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireWeekly}
+            foreach ($backup in $Expiredweeklys) {
+                Remove-Item -Path $backup.FullName
+                $deleted = $backup.BaseName
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired weekly backup $deleted"
             }
         }
 
         # Exire old daily backups
         #
         Write-iBISSTM1Log -Path $log -Message "Checking for old Backups to expire..."
-        $ExpiredDailys   = Get-ChildItem -Path $BackupDirDaily | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireDaily}
+        $ExpiredDailys = Get-ChildItem -Path $BackupDirDaily | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireDaily}
         if ($ExpiredDailys.Length -gt "0") {
             foreach ($backup in $ExpiredDailys) {
                 Remove-Item -Path $backup.FullName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired daily backup $backup.BaseName"          
+                $deleted = $backup.BaseName
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired daily backup $deleted"
             }    
         }
         else {
@@ -155,15 +227,17 @@ else {
         # Setting up Log environment
         #
         $LogPath = "$LogBaseDir\backups"
-        $LogName = "$InstanceName-$Task-$date2.log"
-        $log     = "$LogPath\$LogName"
+        $LogName = "$ServiceName-$Task-$date2.log"
+        $log = "$LogPath\$LogName"
         
         # Setting up Backup environment
         #
-        $BackupDirDaily   = "$BackupBaseDir\daily"
+        $BackupDirDaily = "$BackupBaseDir\daily"
+        $BackupDirweekly = "$BackupBaseDir\weekly"
         $BackupDirMonthly = "$BackupBaseDir\monthly"
-        $BackupSource     = "$InstanceBaseDir\model"
-        $BackupTarget     = "$InstanceName-$Task-$date1.zip"
+        $BackupDirYearly = "$BackupBaseDir\yearly"
+        $BackupSource = "$InstanceBaseDir\model"
+        $BackupTarget = "$ServiceName-$Task-$date1.zip"
 
         # Check if we run first time and create Log structure, else create new logfile only
         #
@@ -189,12 +263,35 @@ else {
             New-item -Path $BackupBaseDir\monthly -ItemType "Directory" | Out-Null
             Write-iBISSTM1Log -Path $log -Message "Backupdirs in $BackupBaseDir created successful."
         }
+        elseif ($weekly -and !(Test-Path $BackupBaseDir\weekly)) {
+            New-item -Path $BackupBaseDir\weekly -ItemType "Directory" | Out-Null
+            Write-iBISSTM1Log -Path $log -Message "Created additional backupdir for weekly backup successful."
+        }
+        elseif ($yearly -and !(Test-Path $BackupBaseDir\yearly)) {
+            New-item -Path $BackupBaseDir\yearly -ItemType "Directory" | Out-Null
+            Write-iBISSTM1Log -Path $log -Message "Created additional backupdir for yearly backup successful."
+        }
 
-        # Finaly start offline Backup
+        # Finaly start online Backup
         #
         Start-iBISSTM1Backup -Type Online -Target $BackupDirDaily\$BackupTarget -Source $BackupSource
         
-        # First day in month? Copy backup also to monthly and expire old ones
+        # First day of year? Copy backup also to yearly and exipre old ones
+        #
+        if ((Get-Date).DayOfYear -eq "1" -and $yearly -eq "$true") {
+            Write-iBISSTM1Log -Path $log -Message "1st day of year detected, creating yearly backup!"
+            Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirYearly
+            Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirYearly"
+
+            $ExpiredYearlys = Get-ChildItem -Path $BackupDirYearly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireYearly}
+            foreach ($backup in $ExpiredYearlys) {
+                Remove-Item -Path $backup.FullName
+                $deleted = $backup.BaseName
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired yearly backup $deleted"
+            }
+        }
+        
+        # First day of month? Copy backup also to monthly and expire old ones
         #
         if ((Get-Date).Day -eq "1") {
             Write-iBISSTM1Log -Path $log -Message "1st day of month detected, creating monthly backup!"
@@ -204,18 +301,34 @@ else {
             $ExpiredMonthlys = Get-ChildItem -Path $BackupDirMonthly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt "$($ExpireMonthly * 30)"}
             foreach ($backup in $ExpiredMonthlys) {
                 Remove-Item -Path $backup.FullName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired monthly backup $backup.BaseName"          
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired monthly backup $deleted"
+            }
+        }
+
+        # Last day of week? Copy backup also to weekly and exipre old ones
+        #
+        if ((Get-Date).DayOfWeek -eq "Sunday" -and $weekly -eq "$true") {
+            Write-iBISSTM1Log -Path $log -Message "Last day of week detected, creating weekly backup!"
+            Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirWeekly
+            Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirWeekly"
+
+            $Expiredweeklys = Get-ChildItem -Path $BackupDirWeekly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireWeekly}
+            foreach ($backup in $Expiredweeklys) {
+                Remove-Item -Path $backup.FullName
+                $deleted = $backup.BaseName
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired weekly backup $deleted"
             }
         }
 
         # Exire old daily backups
         #
         Write-iBISSTM1Log -Path $log -Message "Checking for old Backups to expire..."
-        $ExpiredDailys   = Get-ChildItem -Path $BackupDirDaily | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireDaily}
+        $ExpiredDailys = Get-ChildItem -Path $BackupDirDaily | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireDaily}
         if ($ExpiredDailys.Length -gt "0") {
             foreach ($backup in $ExpiredDailys) {
                 Remove-Item -Path $backup.FullName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired daily backup $backup.BaseName"          
+                $deleted = $backup.BaseName
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired daily backup $deleted"
             }    
         }
         else {
@@ -223,6 +336,7 @@ else {
         }
         
         Stop-iBISSTM1Log -Path $log -Task $Task
-    } 
+    
+    }
 
 }

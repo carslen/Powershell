@@ -250,7 +250,8 @@ function Write-iBISSTM1ERROR (
 function Start-iBISSTM1Backup (
     [Parameter(Mandatory = $true)][ValidateSet("Online", "Offline")][string[]]$Type,
     [Parameter(Mandatory = $true)][string[]]$Target,
-    [Parameter(Mandatory = $true)][string[]]$Source
+    [Parameter(Mandatory = $true)][string[]]$Source,
+    [Parameter(Mandatory = $true)][string[]]$ServiceName
     #[Parameter(Mandatory = $true)][string[]]$Log
     )
     
@@ -290,19 +291,19 @@ function Start-iBISSTM1Backup (
             }
             elseif ($Type -eq "Offline") {
                 Write-iBISSTM1Log -Path $log -Message "Starting TM1 $Task"
-                Write-iBISSTM1Log -Path $log -Message "Checking TM1 Service for $InstanceName"
+                Write-iBISSTM1Log -Path $log -Message "Checking TM1 Service for $ServiceName"
 
                 # Checking Instance status (runnung, or not)
                 #
-                if ((Get-Service -Name "$InstanceName").Status -eq "Running") {
-                    Write-iBISSTM1Log -Path $log -Message "$InstanceName service is running, stopping..."
-                    Stop-Service -Name $InstanceName
-                    Write-iBISSTM1Log -Path $log -Message "Waiting for $InstanceName to be stopped. "
-                    while ((Get-Service -Name "$InstanceName").Status -eq "Running") {
+                if ((Get-Service -Name "$ServiceName").Status -eq "Running") {
+                    Write-iBISSTM1Log -Path $log -Message "Service $ServiceName is running, stopping."
+                    Stop-Service -Name $ServiceName
+                    Write-iBISSTM1Log -Path $log -Message "Waiting for service $ServiceName to be stopped. "
+                    while ((Get-Service -Name "$ServiceName").Status -eq "Running") {
                         Write-iBISSTM1Log -Path $log -Message ". "
                         Start-Sleep -Seconds 3
                     }
-                    Write-iBISSTM1Log -Path $log -Message "$InstanceName stopped."
+                    Write-iBISSTM1Log -Path $log -Message "$ServiceName Stopped!"
                     Write-iBISSTM1Log -Path $log -Message "Creating backup container"
                     
                 # Start creating the zip for backup
@@ -331,15 +332,15 @@ function Start-iBISSTM1Backup (
                 
                 # Start instance after backup
                 # 
-                    Write-iBISSTM1Log -Path $log -Message "Starting $InstanceName service"
-                    Start-Service -Name $InstanceName
-                    if ((Get-Service -Name "$InstanceName").Status -eq "Running") {
-                        Write-iBISSTM1Log -Path $log -Message "$InstanceName started successful."
+                    Write-iBISSTM1Log -Path $log -Message "Starting service $ServiceName"
+                    Start-Service -Name $ServiceName
+                    if ((Get-Service -Name "$ServiceName").Status -eq "Running") {
+                        Write-iBISSTM1Log -Path $log -Message "$ServiceName started successful."
                     }
                     
                 }
                 else {
-                    Write-iBISSTM1Warn -Path $log -Message "Instance $InstanceName already stopped"
+                    Write-iBISSTM1Warn -Path $log -Message "Instance $ServiceName already stopped"
                     Write-iBISSTM1Log -Path $log -Message "Creating backup container"
                     
                 # Start creating the zip for backup
