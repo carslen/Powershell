@@ -48,12 +48,6 @@ foreach ($dir in $temp) {
 }
 Write-Host -ForegroundColor DarkGreen $BaseName
 
-"ITC" -match "itc_int"
-"itc_int" -match "ITC"
-
-$temp[1] -match $InstanceName
-$InstanceName -match $temp[1]
-
 [System.Math]::Round(12.12345,2)
 
-(Get-date).DayOfWeek -eq "Wednesday"
+

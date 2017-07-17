@@ -8,8 +8,9 @@ Param (
 )
 
 <#
-    ####################################################################################################################################################################################
-    START CONFIGURATION SECTION
+ ####################################################################################################################################################################################
+ #   START CONFIGURATION SECTION
+ ####################################################################################################################################################################################
 #>
 
 # TM1 Basenames
@@ -35,9 +36,10 @@ $yearly = "$true" # If set to $true, then yearly backups will be created
 [int]$ExpireLogs = "28"  # specify in number of days
 
 <#
-    END CONFIGURATION SECTION
-    DO NOT CHANGE ANY LINE BELOW THIS CONFIGURATION SECTION
-    ####################################################################################################################################################################################
+ ####################################################################################################################################################################################
+ #   END CONFIGURATION SECTION
+ #   DO NOT CHANGE ANY LINE BELOW THIS CONFIGURATION SECTION
+ ####################################################################################################################################################################################
 #>
 
 
@@ -47,13 +49,13 @@ $yearly = "$true" # If set to $true, then yearly backups will be created
 
 # Some baseline variables 
 #
-$date1 = Get-Date -UFormat "%Y-%m-%d"
-$date2 = Get-Date -Uformat "%Y-%m-%d_%H%M%S"
-$BaseDir = "C:\Users\CARSLEN\Desktop\Test"# Muss deaktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
+$date1      = Get-Date -UFormat "%Y-%m-%d"
+$date2      = Get-Date -Uformat "%Y-%m-%d_%H%M%S"
+$BaseDir    = "C:\Users\CARSLEN\Desktop\Test"# Muss deaktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
 #$BaseDir = "D:\TM1"                      # Muss aktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
-$InstanceBaseDir = "$BaseDir\$InstanceFilesystemBaseName"
-$BackupBaseDir = "$InstanceBaseDir\backups"
-$LogBaseDir = "$InstanceBaseDir\logs"
+$InstanceBaseDir    = "$BaseDir\$InstanceFilesystemBaseName"
+$BackupBaseDir      = "$InstanceBaseDir\backups"
+$LogBaseDir         = "$InstanceBaseDir\logs"
 
 
 if (!(Get-Service -Name $ServiceName -ErrorAction SilentlyContinue)) {
@@ -93,9 +95,9 @@ else {
     elseif ($Task -eq "ExpireLogs") {
         # Setting up Log environment
         #
-        $LogPath = "$InstanceBaseDir\logs\exirelogs"
+        $LogPath = "$LogBaseDir\logfiles"
         $LogName = "$ServiceName-$Task-$date2.log"
-        $log = "$LogPath\$LogName"
+        $log     = "$LogPath\$LogName"
 
         # Check if we run first time and create Log structure, else create new logfile only
         #
@@ -109,13 +111,24 @@ else {
             New-Item -Name $LogName -Path $LogPath -ItemType "file" | Out-Null
             Start-iBISSTM1Log -Path $log -Task $Task
         }
+
+        # Search for expired logfiles in $logBaseDir and delete them
+        #
+
+        $ExpiredLogs = Get-ChildItem -Path $LogBaseDir -Recurse | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireLogs}
+            foreach ($log in $ExpiredLogs) {
+                Remove-Item -Path $log.FullName -WhatIf
+                $deleted = $log.Name
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired logfile:`t$deleted"
+            }
+
     }
     elseif ($Task -eq "OfflineBackup") {
         # Setting up Log environment
         #
         $LogPath = "$LogBaseDir\backups"
         $LogName = "$ServiceName-$Task-$date2.log"
-        $log = "$LogPath\$LogName"
+        $log     = "$LogPath\$LogName"
         
         # Setting up Backup environment
         #
@@ -170,11 +183,11 @@ else {
             Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirYearly
             Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirYearly"
 
-            $ExpiredYearlys = Get-ChildItem -Path $BackupDirYearly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireYearly}
+            $ExpiredYearlys = Get-ChildItem -Path $BackupDirYearly -Filter "*Offline*" | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireYearly}
             foreach ($backup in $ExpiredYearlys) {
                 Remove-Item -Path $backup.FullName
-                $deleted = $backup.BaseName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired yearly backup $deleted"
+                $deleted = $backup.Name
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired yearly backup:`t$deleted"
             }
         }
         
@@ -185,10 +198,11 @@ else {
             Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirMonthly
             Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirMonthly"
 
-            $ExpiredMonthlys = Get-ChildItem -Path $BackupDirMonthly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt "$($ExpireMonthly * 30)"}
+            $ExpiredMonthlys = Get-ChildItem -Path $BackupDirMonthly -Filter "*Offline*" | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireMonthly}
             foreach ($backup in $ExpiredMonthlys) {
                 Remove-Item -Path $backup.FullName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired monthly backup $deleted"
+                $deleted = $backup.Name
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired monthly backup:`t$deleted"
             }
         }
 
@@ -199,23 +213,23 @@ else {
             Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirWeekly
             Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirWeekly"
 
-            $Expiredweeklys = Get-ChildItem -Path $BackupDirWeekly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireWeekly}
+            $Expiredweeklys = Get-ChildItem -Path $BackupDirWeekly -Filter "*Offline*" | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireWeekly}
             foreach ($backup in $Expiredweeklys) {
                 Remove-Item -Path $backup.FullName
-                $deleted = $backup.BaseName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired weekly backup $deleted"
+                $deleted = $backup.Name
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired weekly backup:`t$deleted"
             }
         }
 
         # Exire old daily backups
         #
         Write-iBISSTM1Log -Path $log -Message "Checking for old Backups to expire..."
-        $ExpiredDailys = Get-ChildItem -Path $BackupDirDaily | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireDaily}
+        $ExpiredDailys = Get-ChildItem -Path $BackupDirDaily -Filter "*Offline*" | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireDaily}
         if ($ExpiredDailys.Length -gt "0") {
             foreach ($backup in $ExpiredDailys) {
                 Remove-Item -Path $backup.FullName
-                $deleted = $backup.BaseName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired daily backup $deleted"
+                $deleted = $backup.Name
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired daily backup:`t$deleted"
             }    
         }
         else {
@@ -276,7 +290,7 @@ else {
 
         # Finaly start online Backup
         #
-        Start-iBISSTM1Backup -Type Online -Target $BackupDirDaily\$BackupTarget -Source $BackupSource
+        Start-iBISSTM1Backup -Type Online -Target $BackupDirDaily\$BackupTarget -Source $BackupSource -ServiceName $ServiceName
         
         # First day of year? Copy backup also to yearly and exipre old ones
         #
@@ -285,11 +299,11 @@ else {
             Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirYearly
             Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirYearly"
 
-            $ExpiredYearlys = Get-ChildItem -Path $BackupDirYearly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireYearly}
+            $ExpiredYearlys = Get-ChildItem -Path $BackupDirYearly -Filter "*Online*" | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireYearly}
             foreach ($backup in $ExpiredYearlys) {
                 Remove-Item -Path $backup.FullName
-                $deleted = $backup.BaseName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired yearly backup $deleted"
+                $deleted = $backup.Name
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired yearly backup:`t$deleted"
             }
         }
         
@@ -300,10 +314,11 @@ else {
             Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirMonthly
             Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirMonthly"
 
-            $ExpiredMonthlys = Get-ChildItem -Path $BackupDirMonthly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt "$($ExpireMonthly * 30)"}
+            $ExpiredMonthlys = Get-ChildItem -Path $BackupDirMonthly -Filter "*Online*" | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt "$($ExpireMonthly * 30)"}
             foreach ($backup in $ExpiredMonthlys) {
                 Remove-Item -Path $backup.FullName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired monthly backup $deleted"
+                $deleted = $backup.Name
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired monthly backup:`t$deleted"
             }
         }
 
@@ -314,23 +329,23 @@ else {
             Copy-Item -Path $BackupDirDaily\$BackupTarget -Destination $BackupDirWeekly
             Write-iBISSTM1Log -Path $log -Message "Copied $BackupTarget to $BackupDirWeekly"
 
-            $Expiredweeklys = Get-ChildItem -Path $BackupDirWeekly | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireWeekly}
+            $Expiredweeklys = Get-ChildItem -Path $BackupDirWeekly -Filter "*Online*" | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireWeekly}
             foreach ($backup in $Expiredweeklys) {
                 Remove-Item -Path $backup.FullName
-                $deleted = $backup.BaseName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired weekly backup $deleted"
+                $deleted = $backup.Name
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired weekly backup:`t$deleted"
             }
         }
 
         # Exire old daily backups
         #
         Write-iBISSTM1Log -Path $log -Message "Checking for old Backups to expire..."
-        $ExpiredDailys = Get-ChildItem -Path $BackupDirDaily | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireDaily}
+        $ExpiredDailys = Get-ChildItem -Path $BackupDirDaily -Filter "*Online*" | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireDaily}
         if ($ExpiredDailys.Length -gt "0") {
             foreach ($backup in $ExpiredDailys) {
                 Remove-Item -Path $backup.FullName
-                $deleted = $backup.BaseName
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired daily backup $deleted"
+                $deleted = $backup.Name
+                Write-iBISSTM1Log -Path $log -Message "Deleted expired daily backup:`t$deleted"
             }    
         }
         else {
