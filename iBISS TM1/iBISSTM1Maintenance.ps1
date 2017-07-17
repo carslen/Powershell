@@ -33,7 +33,7 @@ $yearly = "$true" # If set to $true, then yearly backups will be created
 
 # Logfile expiration configuration
 #
-[int]$ExpireLogs = "28"  # specify in number of days
+[int]$ExpireLogs = "6"  # specify in number of days
 
 <#
  ####################################################################################################################################################################################
@@ -129,9 +129,10 @@ else {
                 Write-Host "`t$($todel.Directory.Name)\$deleted"
                 Write-iBISSTM1Log -Path $log -Message "`t$($todel.Directory.Name)\$deleted"
             }
-        }
         Write-Host "Deleting expired files finished for $InstanceFilesystemBaseName"
         Write-iBISSTM1Log -Path $log -Message "Deleting expired files finished for $InstanceFilesystemBaseName"
+        }
+        
         Stop-iBISSTM1Log -Path $log -Task $Task
 
     }
