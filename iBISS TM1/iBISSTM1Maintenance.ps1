@@ -15,9 +15,9 @@ Param (
 
 # TM1 Basenames
 #
-$ServiceName = "Tomcat8" # TM1 instance service name
-$InstanceFilesystemBaseName = "Tomcat82" # TM1 instance directory name as available below D:\TM1\
-$CopyLogDestination = "" # Copy destination for task CopyLogs
+$ServiceName                = "Tomcat8"     # TM1 instance service name
+$InstanceFilesystemBaseName = "Tomcat82"    # TM1 instance directory name as available below D:\TM1\
+$CopyLogDestination         = "C:\Users\CARSLEN\Desktop\Test\Robo_Dest\logs"            # Copy destination for task CopyLogs
 
 # Backup configuration
 #
@@ -70,9 +70,9 @@ else {
 
         # Setting up Log environment
         #
-        $LogPath = "$LogBaseDir\logfiles"
+        $LogPath = "$LogBaseDir\robocopy"
         $LogName = "$ServiceName-$Task-$date2.log"
-        $log = "$LogPath\$LogName"
+        $log     = "$LogPath\$LogName"
         
         # Check if we run first time and create Log structure, else create new logfile only
         #
@@ -87,10 +87,16 @@ else {
             Start-iBISSTM1Log -Path $log -Task $Task
         }
 
+        Write-iBISSTM1Log -Path $log -Message "Start copying files from $LogBaseDir to $CopyLogDestination"
+
         # Starting things to do!
         #
         # TBD!
-        Copy-Item -Path $CopyLogDestination
+        Robocopy.exe $LogBaseDir $CopyLogDestination /mir /v /np /log+:"$log" /xd robocopy /xf tm1s.log /xf tm1s20????????????.log
+
+        Write-iBISSTM1Log -Path $log -Message "Finished copying files from $LogBaseDir to $CopyLogDestination"
+        Stop-iBISSTM1Log -Path $log -Task $Task
+
     }
     elseif ($Task -eq "ExpireLogs") {
         # Setting up Log environment
@@ -124,7 +130,7 @@ else {
         }
         else {
             foreach ($todel in $ExpiredLogs) {
-                Remove-Item -Path $todel.FullName -WhatIf
+                Remove-Item -Path $todel.FullName #-WhatIf
                 $deleted = $todel.Name
                 Write-Host "`t$($todel.Directory.Name)\$deleted"
                 Write-iBISSTM1Log -Path $log -Message "`t$($todel.Directory.Name)\$deleted"
