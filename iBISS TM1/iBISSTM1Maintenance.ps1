@@ -26,10 +26,10 @@ $yearly = "$true" # If set to $true, then yearly backups will be created
 
 # Backup expiration configuration
 #
-[int]$ExpireDaily = "1" # specify in number of days, e.g. "13" for 14 days
-[int]$ExpireWeekly = "28" # specify in number of days, e.g. "28" for 28 days/4 weeks, takes only affect if $weekly is set to $true
+[int]$ExpireDaily   =   "1" # specify in number of days, e.g. "13" for 14 days
+[int]$ExpireWeekly  =  "28" # specify in number of days, e.g. "28" for 28 days/4 weeks, takes only affect if $weekly is set to $true
 [int]$ExpireMonthly = "180" # specify in number of days, e.g. "180" for ~ 6 months
-[int]$ExpireYearly = "365" # specify in number of days, e.g. "365" for 1 year, takes only affect if $yearly is set to $true
+[int]$ExpireYearly  = "365" # specify in number of days, e.g. "365" for 1 year, takes only affect if $yearly is set to $true
 
 # Logfile expiration configuration
 #
@@ -115,12 +115,24 @@ else {
         # Search for expired logfiles in $logBaseDir and delete them
         #
 
-        $ExpiredLogs = Get-ChildItem -Path $LogBaseDir -Recurse | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireLogs}
-            foreach ($log in $ExpiredLogs) {
-                Remove-Item -Path $log.FullName -WhatIf
-                $deleted = $log.Name
-                Write-iBISSTM1Log -Path $log -Message "Deleted expired logfile:`t$deleted"
+        $ExpiredLogs = Get-ChildItem -Path $LogBaseDir -Recurse -File | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireLogs}
+        Write-Host "Deleting exired files:"
+        Write-iBISSTM1Log -Path $log -Message "Deleting expired files:"
+        if ($ExpiredLogs.Length -lt $ExpireLogs) {
+            Write-Host "Nothing to do"
+            Write-iBISSTM1Log -Path $log -Message "Nothing to do."
+        }
+        else {
+            foreach ($todel in $ExpiredLogs) {
+                Remove-Item -Path $todel.FullName -WhatIf
+                $deleted = $todel.Name
+                Write-Host "`t$($todel.Directory.Name)\$deleted"
+                Write-iBISSTM1Log -Path $log -Message "`t$($todel.Directory.Name)\$deleted"
             }
+        }
+        Write-Host "Deleting expired files finished for $InstanceFilesystemBaseName"
+        Write-iBISSTM1Log -Path $log -Message "Deleting expired files finished for $InstanceFilesystemBaseName"
+        Stop-iBISSTM1Log -Path $log -Task $Task
 
     }
     elseif ($Task -eq "OfflineBackup") {
