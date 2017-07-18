@@ -200,7 +200,7 @@ function Write-iBISSTM1Warn (
         }
 }
 
-function Write-iBISSTM1ERROR (
+function Write-iBISSTM1Error (
     [Parameter(Mandatory=$true)][string[]]$Path,
     [Parameter(Mandatory=$true)][string[]]$Message
     )
@@ -408,22 +408,72 @@ function Get-iBISSTM1OpenFiles (
                 Write-Warning "Please run with elevated privileges!"
                 Break
             }
+            elseif ((Get-Service -Name $TM1ServiceName -ErrorAction SilentlyContinue).Status -ne "Running") {
+                Write-Warning "Service $TM1ServiceName not running!"
+                Break
+            }
+            elseif (!(Get-Service -Name $TM1ServiceName -ErrorAction SilentlyContinue)) {
+                Write-Warning "Service $TM1ServiceName doesn't exist!"
+                Break
+            }
             $ProcessID = Get-WmiObject -Class Win32_Service -Filter "Name = '$TM1ServiceName'" | Select-Object -ExpandProperty ProcessId
             
             if ((Get-WmiObject Win32_OperatingSystem).OSArchitecture -eq "64-bit") {
-                Set-Alias Get-Handle "$env:USERPROFILE\Downloads\Sysinternals\Handle\handle64.exe"
+                Set-Alias Get-Handle "C:\Services\helperEnv\Tools\Sysinternals\Handle\handle64.exe"
             }
             else {
-                Set-Alias Get-Handle "$env:USERPROFILE\Downloads\Sysinternals\Handle\handle.exe"
+                Set-Alias Get-Handle "C:\Services\helperEnv\Tools\Sysinternals\Handle\handle.exe"
             }
         }
         
         Process{
-            Write-Host -ForegroundColor Yellow "List of open files for process $ProcessID"
-            Get-Handle -p $ProcessID -nobanner
+            Write-Host -ForegroundColor Yellow "List of open files for service $TM1ServiceName with PID $ProcessID"
+            Write-Host ""
+            Get-Handle -p $ProcessID  -nobanner -accepteula
+            Write-Host ""
         }
 
         End{
             
+        }
+}
+
+function Configure-iBISSTM1Tasks (
+    [Parameter(Mandatory = $true)][string[]]$InstanceFilesystemBaseName = "Tomcat82"
+    ) 
+    {
+        Begin {
+            #$BaseDir            = "D:\TM1" # Muss aktiviert werden, wenn das Script in den Template-Ordner wandert/produktiv geht
+            $BaseDir            = "C:\Users\CARSLEN\Desktop\Test"
+            $InstanceBaseDir    = "$BaseDir\$InstanceFilesystemBaseName"
+            $helperEnvBase      = "$InstanceBaseDir\helperEnv"
+            $TaskBase           = "$helperEnvBase\Tasks"
+            
+            if (!(Test-Path -Path $InstanceBaseDir)) {
+                Write-Warning "Path $InstanceBaseDir not found!"
+                Break
+            }
+        }
+
+        Process {
+            Write-Host ""
+            $TaskTemplates = Get-ChildItem -Path $TaskBase -File
+            foreach ($Task in $TaskTemplates) {
+                $FilePath = $Task.FullName
+                $FileName = $Task.BaseName
+
+                Write-Host -ForegroundColor Yellow "Configure Task " -NoNewline
+                Write-Host "$($FileName): " -NoNewline
+                (Get-Content -Path $FilePath).Replace('XXX',"$InstanceFilesystemBaseName") | Set-Content -Path $FilePath
+                Write-Host -ForegroundColor Green "`tOK"
+            }
+            Write-Host ""
+            Write-Host "Configuration finished."
+        }
+
+        End {
+            Write-Host ""
+            Write-Host "You can now start Task Scheduler and import tasks from $TaskBase"
+            Write-Host ""
         }
 }

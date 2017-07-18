@@ -1,5 +1,3 @@
-#Requires -RunAsAdministrator
-
 Param (
     #[Parameter(Mandatory = $true, Position = 1, HelpMessage = "TM1 instance service name")][ValidateNotNull()] [string[]]$ServiceName,
     #[Parameter(Mandatory = $true, Position = 2, HelpMessage = "TM1 instance directory name as available below d:\tm1")][ValidateNotNull()] [string[]]$InstanceFilesystemBaseName,
@@ -15,9 +13,9 @@ Param (
 
 # TM1 Basenames
 #
-$ServiceName                = "Tomcat8"     # TM1 instance service name
-$InstanceFilesystemBaseName = "Tomcat82"    # TM1 instance directory name as available below D:\TM1\
-$CopyLogDestination         = "C:\Users\CARSLEN\Desktop\Test\Robo_Dest\logs"            # Copy destination for task CopyLogs
+$ServiceName                = "Tomcat8"                                         # TM1 instance service name
+$InstanceFilesystemBaseName = "Tomcat82"                                        # TM1 instance directory name as available below D:\TM1\
+$CopyLogDestination         = "C:\Users\CARSLEN\Desktop\Test\Robo_Dest\logs"    # Copy destination for task CopyLogs
 
 # Backup configuration
 #
@@ -42,6 +40,13 @@ $yearly = "$true" # If set to $true, then yearly backups will be created
  ####################################################################################################################################################################################
 #>
 
+# Check for administativ rights. Because of Powershell v3 on w2k8 we are using the old way instead of newer "#Requires -RunAsAdministrator" solution which requires Powershell v4
+#
+
+if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Warning "Please run with elevated privileges!"
+    Break
+}
 
 # Load functions using dot sourcing
 #
