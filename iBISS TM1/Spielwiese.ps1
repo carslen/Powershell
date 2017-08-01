@@ -22,7 +22,7 @@ else {
 
 Get-ChildItem -Path "C:\Users\CARSLEN\Downloads" -Filter "*.jnlp" | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt 2} # | Remove-Item -Recurse -WhatIf
 
-[int]$expire ="10"
+[int]$expire ="1"
 (Get-ChildItem -Path "C:\Users\CARSLEN\Downloads" | Where-Object {((Get-Date) - $_.LastWriteTime).days -gt "$($expire * 10)"}).Length # | Remove-Item -Recurse -WhatIf
 (Get-ChildItem -Path "C:\Users\CARSLEN\Downloads" | Where-Object {((Get-Date) - $_.LastWriteTime).days -gt "100"}).Length
 
@@ -51,3 +51,20 @@ Write-Host -ForegroundColor DarkGreen $BaseName
 [System.Math]::Round(12.12345,2)
 
 
+$LogBaseDir = "C:\Users\CARSLEN\Desktop\Test\Tomcat82\logs"
+$ExpiredLogs = Get-ChildItem -Path $LogBaseDir -Recurse | Where-Object {((Get-Date) - $_.LastWriteTime).Days -gt $ExpireLogs}
+foreach ($log in $ExpiredLogs) {
+    Remove-Item -Path $log.FullName -WhatIf
+    $deleted = $log.Name
+    Write-iBISSTM1Log -Path $log -Message "Deleted expired logfile:`t$deleted"
+}
+
+$colItems = (Get-ChildItem "\\sstr291f.emea.isn.corpintra.net\gipsy" -recurse | Measure-Object -property length -sum) 
+"{0:N2}" -f ($colItems.sum / 1MB) + " MB"
+
+
+
+#String ersetzten in Datei:
+
+
+Get-ChildItem -Path $profile.AllUsersAllHosts
