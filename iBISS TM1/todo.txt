@@ -1,4 +1,4 @@
 iBISSMaintenance.ps1
 ======================
 - 03.07.17
-    Unterschiedliche srvname und instance name abbilden (int_itc vs. itc im FS)
+    Unterschiedliche srvname und instance name abbilden (int_itc vs. itc im FS) -> done!

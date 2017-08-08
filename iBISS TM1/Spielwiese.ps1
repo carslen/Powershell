@@ -68,3 +68,5 @@ $colItems = (Get-ChildItem "\\sstr291f.emea.isn.corpintra.net\gipsy" -recurse | 
 
 
 Get-ChildItem -Path $profile.AllUsersAllHosts
+
+Get-ADPrincipalGroupMembership -Identity carslen
